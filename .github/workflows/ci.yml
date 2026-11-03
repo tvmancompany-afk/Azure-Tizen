@@ -1,0 +1,48 @@
+name: Validate and package Tizen app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in AzureTizen_0.1.4/js/*.js; do
+            node --check "$file"
+          done
+
+      - name: Validate Tizen config XML
+        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('AzureTizen_0.1.4/config.xml')"
+
+      - name: Package unsigned WGT
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd AzureTizen_0.1.4
+          zip -qr "$RUNNER_TEMP/AzureTizen-unsigned.wgt" config.xml index.html icon.png css js assets
+
+      - name: Upload unsigned WGT
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzureTizen-unsigned-wgt
+          path: ${{ runner.temp }}/AzureTizen-unsigned.wgt
+          retention-days: 7
+          if-no-files-found: error

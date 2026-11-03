@@ -1,0 +1,9 @@
+# Generated packages and uploaded source archive
+*.wgt
+*.zip
+
+# Local testing output
+AzureTizen_0.1.4/pruebas/v.webm
+__pycache__/
+*.py[cod]
+.DS_Store

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Azure para Samsung Tizen TV. No probado en una TV: si Tizen Studio protesta por algún
+     campo, créale un proyecto TV "Basic" vacío y compara este archivo con el suyo. -->
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
+        id="http://azure.local/AzureTizen" version="0.1.4" viewmodes="maximized">
+    <!-- package: 10 letras/números. id de la app = package + "." + nombre -->
+    <tizen:application id="AzureTzn01.Azure" package="AzureTzn01" required_version="6.0"/>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <icon src="icon.png"/>
+    <name>Azure</name>
+    <tizen:profile name="tv-samsung"/>
+
+    <!-- Permisos: red, teclas del control remoto y reproductor AVPlay -->
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/avplay"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/productinfo"/>
+
+    <!-- Acceso a servidores externos (la forma documentada de permitir peticiones a otros dominios) -->
+    <access origin="*" subdomains="true"/>
+
+    <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable"
+                   encryption="disable" install-location="auto" hwkey-event="enable"/>
+    <!-- Puntero (ratón / cuadro táctil de Control Samsung): desde 2021 viene desactivado por defecto; aquí se pide activado.
+         Si en la TV da problemas, cambiar a "disable" o borrar esta línea. -->
+    <tizen:setting pointing-device-support="enable"/>
+</widget>

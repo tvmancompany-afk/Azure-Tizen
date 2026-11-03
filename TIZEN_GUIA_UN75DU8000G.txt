@@ -1,0 +1,99 @@
+Guía de instalación y preparación para Azure Tizen en Samsung UN75DU8000G
+
+Resumen
+- Este modelo es una TV Samsung con Tizen, no Android.
+- La app web Tizen está en la carpeta AzureTizen_0.1.4/
+- GitHub Actions genera un paquete .wgt sin firmar; su artefacto se conserva 7 días.
+- Para instalarlo en la TV real hace falta Tizen Studio + certificado Samsung + modo desarrollador activado.
+
+Archivos del repositorio
+- Proyecto extraído: AzureTizen_0.1.4/
+- Configuración de la app: AzureTizen_0.1.4/config.xml
+- Paquete sin firmar de CI: se descarga desde GitHub Actions > ejecución del workflow > Artifacts.
+  Los artefactos de Actions se conservan 7 días.
+
+1) Qué es lo que ya está listo
+- La app es una web app Tizen, sin dependencias de npm.
+- La validación del JavaScript se hizo con node --check en los scripts.
+- El zip se descomprimió correctamente.
+- El paquete .wgt de prueba se genera mediante GitHub Actions.
+- El paquete de CI es sin firmar. No se puede instalar en la TV hasta empaquetarlo con un certificado Samsung que incluya el DUID de esa TV.
+- El proyecto se puede servir localmente en navegador para pruebas no TV:
+  python3 -m http.server 8000
+  http://localhost:8000
+
+2) Qué necesita la TV Samsung real
+- Tizen Studio instalado en el PC
+- TV Extensions en el Package Manager de Tizen Studio
+- Cuenta Samsung y certificado Samsung
+- Modo desarrollador activado en la TV
+- TV y PC en la misma red
+- IP fija recomendada en la TV
+
+3) Configuración de la TV UN75DU8000G
+- En la TV pulsa Apps > 1 2 3 4 5 para activar el modo desarrollador
+- Si no aparece, revisa la versión de software y la interfaz del menú
+- Activa Developer mode
+- Escribe la IP del PC donde está Tizen Studio
+- Reinicia la TV
+
+4) En la laptop / PC con Tizen Studio
+- Instala Tizen Studio
+- En Package Manager instala “TV Extensions”
+- Abre Certificate Manager
+- Crea un certificado Samsung (autor + distribuidor)
+- En Device Manager, conecta la TV usando la IP
+- Asegúrate de que la TV aparece como dispositivo remoto
+- Obtén el DUID de la TV si Tizen Studio lo solicita
+
+5) Importar la app en Tizen Studio
+- File > Import > Tizen > Tizen Project
+- Selecciona la carpeta:
+  AzureTizen_0.1.4
+- Revisa config.xml
+- Verifica que el ID y el package de la app son compatibles con la TV
+
+6) Firmar e instalar en la TV
+Opciones:
+- Desde el IDE:
+  - Clic derecho en el proyecto
+  - Run As > Tizen Web Application
+  - Elige la TV conectada
+
+- Desde CLI:
+  sdb connect IP_DE_LA_TV
+  tizen package -t wgt -s NOMBRE_DEL_PERFIL_DE_CERTIFICADO -- .
+  tizen install -n NOMBRE_GENERADO.wgt -t NOMBRE_DEL_DESTINO
+  tizen run -p AzureTzn01.Azure -t NOMBRE_DEL_DESTINO
+
+Importante:
+- El nombre real del destino aparece en sdb devices o en Device Manager
+- No uses un nombre inventado
+
+7) El proyecto ya incluye la configuración correcta
+El proyecto trae esta app Tizen configurada con:
+- id: http://azure.local/AzureTizen
+- package: AzureTzn01
+- application id: AzureTzn01.Azure
+- profile: tv-samsung
+- permisos: internet, tv.inputdevice, avplay, productinfo
+- acceso a origen *
+
+Esto es lo que la TV Samsung suele necesitar para una app web de TV.
+
+8) Si hay problemas en la primera ejecución
+- La TV no aparece: revisa la red y el modo desarrollador
+- “Application is not installed / signature”: faltan permisos del certificado o DUID
+- Pantalla negra al reproducir: puede deberse a AVPlay o a un formato no soportado
+- Si algo falla con red/proxy: revisar la parte de servidor PHP y configuración Buddy Host
+
+9) Qué sigue después de la instalación
+- Abrir la app en la TV
+- Revisar configuración de red y reproducción
+- Probar M3U, XTREAM, Buddy Host, reproducción
+- Comprobar si la app se ejecuta con AVPlay o usando HTML5 video
+
+10) Nota final
+La app ya está preparada para pasar por Tizen Studio. El siguiente paso real de instalación no se puede completar solo desde GitHub Actions porque exige la TV, el certificado Samsung y el entorno de Tizen Studio en tu PC. La versión mínima declarada en config.xml es Tizen 6.0; la compatibilidad concreta debe confirmarse en la TV.
+
+Si quieres, la siguiente parte es pasar estos pasos a una guía “lista para ejecutar” en GitHub, con una estructura más clara para mantenimiento del proyecto y para dejar documentado el proceso de instalación.

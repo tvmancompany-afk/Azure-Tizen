@@ -1,0 +1,28 @@
+ARCHIVOS "T" PARA AZURE TIZEN (probados aquí con PHP 8 local; NO probados en tu hosting)
+
+Qué son
+  guardarT.php  copia de guardar.php + CORS. Ejecuta tu guardar.php sin tocarlo.
+  leerT.php     copia de leer.php + CORS. Ejecuta tu leer.php sin tocarlo.
+  proxyT.php    proxy de respaldo para listas M3U, JSON de Xtream y subtítulos que fallen por CORS.
+Azure Android y tu web actual siguen usando guardar.php / leer.php, que no se modifican.
+Comparten config.php y la carpeta listas/: lo que guarda Tizen lo lee Azure móvil y al revés.
+
+Cómo subirlos
+  1) guardarT.php y leerT.php: a la MISMA carpeta donde ya están guardar.php, leer.php, config.php y funciones.php.
+  2) proxyT.php: a la misma carpeta (o a otra). ANTES de subirlo, abre el archivo y cambia
+       const CLAVE_PROXY = 'CAMBIA_ESTA_CLAVE';
+     por una clave tuya. Mientras diga CAMBIA_ESTA_CLAVE, el proxy se niega a funcionar.
+  3) En la TV: Configuración > Buddy Host: escribe tu host (ya trae guardarT.php y leerT.php por defecto).
+     Configuración > Red: pon la dirección completa de proxyT.php y la misma clave.
+
+Comprobar desde el navegador de tu PC
+  https://TU_HOST/CARPETA/leerT.php?titulo=UNO_QUE_EXISTA    -> debe mostrar el texto
+  https://TU_HOST/CARPETA/proxyT.php?k=TU_CLAVE&u=https%3A%2F%2Fejemplo.com%2Flista.m3u   -> debe mostrar la lista
+Si el navegador muestra una página rara con "aes.js" o "cookie __test", es la verificación anti-bot del hosting:
+la app lo detecta y lo explica, pero no puede resolverla por sí sola (ver docs/PROGRESO.md).
+
+Qué hace el proxy (y qué no)
+  - Exige la clave. Solo http/https. Bloquea direcciones privadas o internas (192.168.x.x, 10.x.x.x, 127.x.x.x, etc.),
+    revisa cada redirección y corta en 5 MB.
+  - NO verifica el certificado SSL del servidor de destino (muchos IPTV lo tienen mal). Se puede activar en VERIFICAR_SSL.
+  - Los videos nunca pasan por el proxy.

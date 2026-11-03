@@ -1,0 +1,14 @@
+Pruebas automáticas de Azure Tizen (se corren en una PC, NO en la TV). Se pueden borrar antes de empaquetar el .wgt.
+
+Requisitos: Python 3, Node con Playwright (Chromium) y ffmpeg.
+1) Crear el video de prueba:  ffmpeg -f lavfi -i testsrc=duration=20:size=320x180:rate=15 -f lavfi -i sine=duration=20 -c:v libvpx -b:v 200k -c:a libvorbis -shortest v.webm
+2) En esta carpeta:  python3 servidor.py &      (servidor de prueba en 127.0.0.1:8765: lista M3U de 2500, Xtream falso, Buddy Host falso, subtítulo)
+3) Ajusta la ruta file:///home/claude/AzureTizen/index.html dentro de los test*.js si tu carpeta es otra.
+4) node test1.js (lógica y red), node test2.js (teclas y reproducción), node test3.js (Preferentes, exportar, bloqueo, recarga), node test5.js, node test6.js (ventanita del reproductor), node test7.js (texto pegado), node test8.js (cursor de TV) (0.1.2: reloj, bloqueo solo al abrir, estilo de subtítulos).
+Resultado esperado: todas las líneas "OK". La línea de consola sobre CORS en test1 es intencional (prueba el error de red).
+Estas pruebas usan un Chromium de PC: NO prueban AVPlay, ni el control remoto real, ni CORS/HTTP dentro de la TV.
+
+test4.js (0.1.1: archivos T y proxy) necesita además, en otra terminal:
+  - un servidor sin CORS en 127.0.0.1:8802 con un a.m3u (python3 -m http.server --bind 127.0.0.1 8802 en una carpeta con a.m3u),
+  - php -S 127.0.0.1:8801 dentro de una copia de tu carpeta Buddy con guardarT.php, leerT.php y proxyT.php copiados.
+  - para esa prueba, una copia "proxyTest.php" del proxy con la clave abc123 y la IP 127.0.0.1 permitida (el proxy real bloquea 127.x).

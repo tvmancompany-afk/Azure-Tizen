@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1.0">
+<title>Azure</title>
+<link rel="stylesheet" href="css/azure.css">
+<!-- API de Samsung (AVPlay, productinfo). Solo existe dentro de la TV; en un navegador normal falla sin problema. -->
+<script src="$WEBAPIS/webapis/webapis.js"></script>
+</head>
+<body>
+<!-- AVPlay dibuja el video en una capa nativa DETRÁS de la página: la pantalla del reproductor
+     debe tener el fondo transparente. -->
+<object id="avplay" type="application/avplayer" style="position:fixed;left:0;top:0;width:1920px;height:1080px;"></object>
+<video id="video" playsinline style="display:none;position:fixed;left:0;top:0;width:1920px;height:1080px;background:#000;"></video>
+<div id="app"></div>
+<div id="capa-dialogos"></div>
+<div id="toast"></div>
+
+<script src="js/util.js"></script>
+<script src="js/registro.js"></script>
+<script src="js/almacen.js"></script>
+<script src="js/red.js"></script>
+<script src="js/teclas.js"></script>
+<script src="js/foco.js"></script>
+<script src="js/dialogo.js"></script>
+<script src="js/campo.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/lista.js"></script>
+<script src="js/m3u.js"></script>
+<script src="js/xtream.js"></script>
+<script src="js/seguridad.js"></script>
+<script src="js/preferentes.js"></script>
+<script src="js/exportar.js"></script>
+<script src="js/buddyhost.js"></script>
+<script src="js/subtitulos.js"></script>
+<script src="js/reproductor.js"></script>
+<script src="js/iconos.js"></script>
+<script src="js/pantallas.js"></script>
+<script src="js/pantallas_pref.js"></script>
+<script src="js/pantallas_sub.js"></script>
+<script src="js/pantallas_rep.js"></script>
+<script src="js/pantallas_config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
