@@ -2,13 +2,14 @@ Guía de instalación y preparación para Azure Tizen en Samsung UN75DU8000G
 
 Resumen
 - Este modelo es una TV Samsung con Tizen, no Android.
-- La app web Tizen está en la carpeta AzureTizen_0.1.4/
+- La app web Tizen está en la carpeta AzureTizen_0.1.6/
+- La versión del proyecto es 0.1.6.
 - GitHub Actions genera un paquete .wgt sin firmar; su artefacto se conserva 7 días.
 - Para instalarlo en la TV real hace falta Tizen Studio + certificado Samsung + modo desarrollador activado.
 
 Archivos del repositorio
-- Proyecto extraído: AzureTizen_0.1.4/
-- Configuración de la app: AzureTizen_0.1.4/config.xml
+- Proyecto extraído: AzureTizen_0.1.6/
+- Configuración de la app: AzureTizen_0.1.6/config.xml (versión 0.1.6)
 - Paquete sin firmar de CI: se descarga desde GitHub Actions > ejecución del workflow > Artifacts.
   Los artefactos de Actions se conservan 7 días.
 
@@ -49,7 +50,7 @@ Archivos del repositorio
 5) Importar la app en Tizen Studio
 - File > Import > Tizen > Tizen Project
 - Selecciona la carpeta:
-  AzureTizen_0.1.4
+  AzureTizen_0.1.6
 - Revisa config.xml
 - Verifica que el ID y el package de la app son compatibles con la TV
 

@@ -201,15 +201,32 @@
     var xUser = Azure.Campo.texto('Usuario', A.get('xt_user', ''));
     var xPass = Azure.Campo.clave('Contraseña', A.get('xt_pass', ''));
     function xGuardarUltimo() { A.set('xt_host', xHost.valor()); A.set('xt_user', xUser.valor()); A.set('xt_pass', xPass.valor()); }
+    /** Cuentas Xtream guardadas: tocar abre; 🗑 borra (con confirmación). */
+    function cuentasXtream(foco) {
+      var l = A.get('xt_cuentas', []);
+      var cuerpo = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } });
+      var api;
+      l.forEach(function (c, i) {
+        var b = boton('Xstream ' + (i + 1) + '  (' + c.user + ' @ ' + c.host.replace(/^https?:\/\//, '') + ')', function () { api.cerrar(); abrirEnlace(Azure.Xtream.enlaceRaiz(c.host, c.user, c.pass), 'Xstream ' + (i + 1)); });
+        var x = el('div', { cls: 'btn ib', f: true, attrs: { tabindex: '-1', 'aria-label': 'Borrar' } }, Azure.Iconos.crear('papelera'));
+        x.addEventListener('click', function () {
+          api.cerrar();
+          Azure.Dialogo.confirmar('¿Borrar esta cuenta?', 'Xstream ' + (i + 1) + '\n' + c.user + ' @ ' + c.host.replace(/^https?:\/\//, ''), 'BORRAR').then(function (si) {
+            if (si) { var q = A.get('xt_cuentas', []); q.splice(i, 1); A.set('xt_cuentas', q); estadoTxt('Cuenta borrada.', 'ok'); }
+            if (A.get('xt_cuentas', []).length) cuentasXtream();
+          });
+        });
+        cuerpo.appendChild(el('div', { cls: 'cuenta-fila' }, b, x));
+      });
+      api = Azure.Dialogo.abrir({ titulo: 'Cuentas Xtream', cuerpo: cuerpo, botones: [{ t: 'CERRAR' }] });
+    }
     var panelXtream = plegable('Xtream', [xHost.el, xUser.el, xPass.el,
       el('div', { cls: 'fila-h' },
         boton('CONECTAR', function () { xGuardarUltimo(); abrirEnlace(Azure.Xtream.enlaceRaiz(xHost.valor(), xUser.valor().trim(), xPass.valor()), 'Xtream'); }, 'pri'),
         boton('LISTAS', function () {
           var l = A.get('xt_cuentas', []);
           if (!l.length) { Azure.Dialogo.aviso('Xtream', 'No hay cuentas guardadas.'); return; }
-          Azure.Dialogo.menu('Cuentas Xtream', l.map(function (c, i) {
-            return { t: 'Xstream ' + (i + 1) + '  (' + c.user + ' @ ' + c.host.replace(/^https?:\/\//, '') + ')', fn: function () { abrirEnlace(Azure.Xtream.enlaceRaiz(c.host, c.user, c.pass), 'Xstream ' + (i + 1)); } };
-          }));
+          cuentasXtream();
         })),
         boton('GUARDAR', function () {
           var h = Azure.Xtream.normalizarHost(xHost.valor());

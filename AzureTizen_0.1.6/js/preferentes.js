@@ -105,6 +105,33 @@
       }
       return null;
     },
+    editarSublista: function (entradaId, subId, d) {
+      var es = entradas(), hecho = false;
+      es.forEach(function (e) { if (e.id === entradaId) e.sublists.forEach(function (s) {
+        if (s.id !== subId || s.locked) return;
+        if (d.title != null && d.title.trim()) s.title = d.title.trim();
+        if (d.cover != null) s.cover = d.cover.trim();
+        hecho = true;
+      }); });
+      if (hecho) guardarEntradas(es);
+      return hecho;
+    },
+    editarVideo: function (entradaId, subId, indice, d) {
+      var es = entradas(), hecho = false;
+      es.forEach(function (e) {
+        if (e.id !== entradaId) return;
+        var dest = e.videos;
+        if (subId) e.sublists.forEach(function (s) { if (s.id === subId) dest = s.videos; });
+        var v = dest[indice]; if (!v) return;
+        if (d.title != null) v.title = d.title.trim() || 'Video';
+        if (d.url != null && Azure.esLinkHttp(d.url)) v.url = d.url.trim();
+        if (d.cover != null) v.cover = d.cover.trim();
+        if (d.list != null) { if (d.list) v.list = true; else delete v.list; }
+        hecho = true;
+      });
+      if (hecho) guardarEntradas(es);
+      return hecho;
+    },
     borrarSublista: function (entradaId, subId) {
       var es = entradas();
       es.forEach(function (e) { if (e.id === entradaId) e.sublists = e.sublists.filter(function (s) { return s.id !== subId; }); });

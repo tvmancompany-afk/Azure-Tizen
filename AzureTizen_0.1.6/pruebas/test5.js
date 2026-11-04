@@ -36,7 +36,7 @@ const R = []; const ok = (n, c, x) => { R.push((c ? 'OK   ' : 'FALLA') + ' ' + n
     S.estiloPoner('tam', 60); S.estiloPoner('color', '#ffe44d');
     return o;
   });
-  ok('versión 0.1.4', m.version === '0.1.4', m.version);
+  ok('versión 0.1.6', m.version === '0.1.6', m.version);
   ok('estilo por defecto = el de antes (44 px, blanco, seminegrita, contorno negro 2)', m.def.tam === 44 && m.def.color === '#ffffff' && m.def.peso === 600 && m.def.cColor === '#000000' && m.def.cPx === 2 && m.def.fondo === 0 && m.def.ajuste === 0, JSON.stringify(m.def));
   ok('tamaño limitado a 24..96', m.tamMax === 96 && m.tamMin === 24, m.tamMax + ',' + m.tamMin);
   ok('color cicla por la paleta y da la vuelta', m.colorCambia && m.colorVuelta);

@@ -39,12 +39,20 @@
     var r = areaVideo();
     if (E.usaAv) {
       var av = avp();
+      // Primero el modo, luego el rectángulo (y se repite un instante después: algunos firmware ignoran el primero). 4:3 = rectángulo 4:3 y la imagen lo llena (como Azure Android).
+      var poner = function () {
+        try {
+          av.setDisplayMethod(E.f43 ? DISPLAY[1] : DISPLAY[E.redim]);
+          av.setDisplayRect(r.x, r.y, r.w, r.h);
+        } catch (e2) { Azure.Registro.aviso('AVPlay pantalla: ' + (e2 && e2.message)); }
+      };
+      Azure.Registro.info('Pantalla AVPlay: ' + (E.f43 ? '4:3 ' : '') + r.x + ',' + r.y + ' ' + r.w + 'x' + r.h);
       try {
-        av.setDisplayRect(r.x, r.y, r.w, r.h);
-        av.setDisplayMethod(E.f43 ? DISPLAY[1] : DISPLAY[E.redim]);
+        poner();
+        clearTimeout(E.tPant); E.tPant = setTimeout(poner, 250);
       } catch (e) { Azure.Registro.aviso('AVPlay pantalla: ' + (e && e.message)); }
     } else if (video) {
-      video.style.objectFit = OBJFIT[E.redim];
+      video.style.objectFit = E.f43 ? 'fill' : OBJFIT[E.redim];
       video.style.left = r.x + 'px'; video.style.top = r.y + 'px'; video.style.width = r.w + 'px'; video.style.height = r.h + 'px';
     }
   }

@@ -25,18 +25,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in AzureTizen_0.1.4/js/*.js; do
+          for file in AzureTizen_0.1.6/js/*.js; do
             node --check "$file"
           done
 
       - name: Validate Tizen config XML
-        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('AzureTizen_0.1.4/config.xml')"
+        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('AzureTizen_0.1.6/config.xml')"
 
       - name: Package unsigned WGT
         shell: bash
         run: |
           set -euo pipefail
-          cd AzureTizen_0.1.4
+          cd AzureTizen_0.1.6
           zip -qr "$RUNNER_TEMP/AzureTizen-unsigned.wgt" config.xml index.html icon.png css js assets
 
       - name: Upload unsigned WGT

@@ -16,11 +16,12 @@
     return !!p && p.nombre === 'reproductor' && !!document.querySelector('.rep-ui.oculto');
   }
   /** ¿Debe el cursor tomar las flechas/OK ahora? */
-  function manda() { return activo && !hayDialogo() && !reproductorSinControles(); }
+  function sinAnillo() { var p = pantalla(); return !!p && !!p.sinAnillo; }
+  function manda() { return activo && !hayDialogo() && !reproductorSinControles() && !sinAnillo(); }
 
   function pintar() {
     if (!anillo) return;
-    anillo.style.display = (activo && !hayDialogo() && !reproductorSinControles()) ? 'block' : 'none';
+    anillo.style.display = (activo && !hayDialogo() && !reproductorSinControles() && !sinAnillo()) ? 'block' : 'none';
     anillo.style.left = (x - 24) + 'px'; anillo.style.top = (y - 24) + 'px';
   }
   function despertar() {

@@ -1,7 +1,7 @@
 /* Núcleo: utilidades. Estilo conservador (sin ?. ni ??) para que corra también en Tizen 6. */
 (function () {
   var Azure = window.Azure = window.Azure || {};
-  Azure.VERSION = '0.1.4';
+  Azure.VERSION = '0.1.6';
   Azure.BASE_ANDROID = '0.1.14';
 
   Azure.$ = function (sel, raiz) { return (raiz || document).querySelector(sel); };

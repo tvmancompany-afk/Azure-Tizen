@@ -2,6 +2,25 @@
 
 Fuente de verdad si se pierde el chat. Una entrada por versión. Mapa del porteo y protocolos: `docs/MAPA_PORTEO.md`.
 
+
+
+## 0.1.6 — Ajustes tras la primera prueba en la TV
+- Fondo (fondo_azur.jpg) girado 90° (queda horizontal, se estira menos en 16:9).
+- Ventanita de la pantalla principal más pequeña: 640×360 (antes 760×428).
+- Cuentas Xtream guardadas (LISTAS): botón 🗑 por cuenta, con confirmación (para quitar duplicadas).
+- 4:3: igual que Azure Android (contenedor 4:3 centrado y la imagen lo llena). AVPlay ahora fija primero el modo y luego el rectángulo, y repite a los 250 ms; en HTML5 usa object-fit: fill. Queda anotado en el registro ("Pantalla AVPlay: 4:3 …"). No probado aquí (solo AVPlay real lo confirma).
+- Pendiente de observar (informe del usuario): Xtream que pide recarga / se queda en "cargando" con el tiempo (¿WiFi, ventanita, Control Samsung saturando la red?); Buddy Host bloqueado por el desafío anti-bot (Tizen no tiene WebView oculto: ver nota); subtítulos nativos del video sin efecto (probar con otro video con subs); subtítulos locales por USB y explorador local (idea, después).
+
+## 0.1.5 — Listas preferentes (comparación con Android)
+- Filas en "modo botones" (→ u OK mantenido entra; ← o Atrás sale; ↑/↓ cambian de fila): candado (confirmación "¿Desea proteger…?"), borrar (confirmaciones de Android), subir, bajar y ✎ editar (solo Tizen: no hay teléfono; oculto si está protegida). El foco sigue al elemento movido.
+- Cabecera: ✕ en el nivel de arriba; ← título 🔍 ✕ dentro de entradas/sublistas. ← en una fila va al botón de arriba; ← en la lupa vuelve a la fila. Posición (entrada/sublista/fila) se conserva al cerrar y reabrir o al volver de reproducir.
+- Prefijos 📁 (sublista) y 🔗 (link que abre otra lista); búsqueda sin acentos; mensajes vacíos y "Ningún título contiene…".
+- Formularios con textos de Android, validación http(s) ("Debe empezar con http:// o https://"), casilla "Este link abre otra lista de links (no se reproduce)"; nuevo editar sublista y editar video.
+- A PREFERENTES: selector de entrada (tocar = entrada; OK mantenido = sublistas, "(la entrada)", ATRÁS) con mensajes "Agregado a…" / "Ese link ya estaba en esa entrada.".
+- Exportar: pestaña inferior plegable (EXPORTAR / IMPORTAR / CAMBIAR CONTRASEÑAS); al abrir Preferentes por primera vez se piden las 3 contraseñas (cancelar = salir); cada acción vuelve a pedirlas.
+- Quitado: RECIBIR LISTA/SUBTÍTULO y ENVIAR A TV (sin Buddy WiFi). El anillo del cursor no actúa en Preferentes (solo sectores).
+- No probado aquí: en la TV real (teclas, foco, tamaño de filas con 5 botones).
+
 ## 0.1.4 — Pantalla principal comparada con Azure Android (2026-11-03)
 Comparada con capturas del usuario y MainActivity.kt de Android 0.1.14.
 

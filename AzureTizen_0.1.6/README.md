@@ -1,6 +1,6 @@
 # Azure Tizen
 
-Versión actual: **0.1.4** (pantalla principal: reproductor integrado en ventanita 16:9, textos y nombres igualados a Android; antes: reproductor clonado de Azure Android: barra Media3, grupos ▸ y », velocidad, audio, Elegir video, recarga automática+, subtítulos+; antes: base portada de Azure Android 0.1.14; archivos de servidor "T" y proxy; Configuración revisada: reloj, bloqueo solo al abrir, estilo de subtítulos configurable)
+Versión actual: **0.1.6** (informe de la primera prueba en TV: fondo girado 90°, ventanita más pequeña, borrar cuentas Xtream, 4:3 reaplicado; antes: Listas preferentes igualadas a Android: filas con modo botones 🔒/🗑/▲▼ y ✎ editar, cabecera ✕/←/lupa, posición conservada, textos de Android, selector de entrada para A PREFERENTES, pestaña Exportar con 3 contraseñas obligatorias; antes: pantalla principal: reproductor integrado en ventanita 16:9, textos y nombres igualados a Android; antes: reproductor clonado de Azure Android: barra Media3, grupos ▸ y », velocidad, audio, Elegir video, recarga automática+, subtítulos+; antes: base portada de Azure Android 0.1.14; archivos de servidor "T" y proxy; Configuración revisada: reloj, bloqueo solo al abrir, estilo de subtítulos configurable)
 
 Reproductor de listas M3U/TXT y Xtream para Samsung Tizen TV. Es una app web (HTML, CSS y JavaScript sin dependencias) empaquetada como `.wgt`.
 
