@@ -109,7 +109,8 @@
       var m = R.ciclarAuto(); textos();
       cartel(m === 1 ? 'Error: recargar solo' : m === 2 ? 'Error: siguiente en continuo/azar' : 'Error: sin automático', 2200);
     });
-    var grupo2 = el('div', { cls: 'rep-grupo' }, btn.subs, btn.auto);
+    btn.motor = ibTexto('AV', function () { var n = R.cambiarMotor(); cartel('Reproductor: ' + n, 2200); textos(); }, 'glifo');
+    var grupo2 = el('div', { cls: 'rep-grupo' }, btn.subs, btn.auto, btn.motor);
     var izq = el('div', { cls: 'rep-izq' }, tiempos, btn.g1, grupo1, btn.g2, grupo2);
 
     btn.alea = ib('aleatorio', function () { R.alternarAleatorio(); textos(); });
@@ -117,18 +118,20 @@
     btn.cc = ib('cc', menuTextoIncrustado);
     btn.ajustes = ib('ajustes', menuAjustes);
     btn.lista = ib('lista', function () { elegirVideo(); });
+    var vivoEl = el('div', { cls: 'rep-vivo', text: 'EN VIVO' });
     var ui, pantalla, miniMas = false;
     if (!mini) {
       var der = el('div', { cls: 'rep-der' }, btn.alea, btn.rep, btn.cc, btn.ajustes, btn.lista);
-      ui = el('div', { cls: 'rep-ui' }, titulo, centro, seek, el('div', { cls: 'rep-fila' }, izq, der));
+      ui = el('div', { cls: 'rep-ui' }, vivoEl, titulo, centro, seek, el('div', { cls: 'rep-fila' }, izq, der));
       pantalla = el('div', { cls: 'pantalla transparente' }, scrim, cue, ui, msg, errorEl, cartelEl);
     } else {
       /* Mini: solo tiempos a la izquierda; a la derecha CC, ajustes, pantalla completa y ›. El › muestra aleatorio y repetir. */
-      var grupoMas = el('div', { cls: 'rep-grupo' }, btn.alea, btn.rep);
+      btn.motor = ibTexto('AV', function () { var n = R.cambiarMotor(); cartel('Reproductor: ' + n, 2200); textos(); }, 'glifo');
+      var grupoMas = el('div', { cls: 'rep-grupo' }, btn.alea, btn.rep, btn.motor);
       btn.pant = ib('pantalla', function () { Pant.ir('reproductor', { continuar: true, desdeMini: true }, true); });
       btn.mas = ibTexto('›', function () { miniMas = !miniMas; grupoMas.classList.toggle('abierto', miniMas); btn.mas.textContent = miniMas ? '‹' : '›'; }, 'glifo');
       var derM = el('div', { cls: 'rep-der' }, grupoMas, btn.cc, btn.ajustes, btn.pant, btn.mas);
-      ui = el('div', { cls: 'rep-ui' }, centro, seek, el('div', { cls: 'rep-fila' }, el('div', { cls: 'rep-izq' }, tiempos), derM));
+      ui = el('div', { cls: 'rep-ui' }, vivoEl, centro, seek, el('div', { cls: 'rep-fila' }, el('div', { cls: 'rep-izq' }, tiempos), derM));
       var interior = el('div', { cls: 'mini-rep' }, scrim, cue, ui, msg, errorEl, cartelEl);
       var caja = el('div', { cls: 'mini-caja' }, interior);
       var tituloMini = el('div', { cls: 'mini-titulo', text: '' });
@@ -144,6 +147,7 @@
       btn.alea.classList.toggle('off', !i.aleatorio);
       I.poner(btn.rep, i.repetir === 1 ? 'repetir1' : 'repetir'); btn.rep.classList.toggle('off', i.repetir === 0);
       btn.f43.classList.toggle('act', !!i.f43);
+      if (btn.motor) btn.motor.textContent = i.usaAv ? 'AV' : 'H5';
       btn.auto.classList.remove('rojo', 'celeste'); if (i.auto === 1) btn.auto.classList.add('rojo'); if (i.auto === 2) btn.auto.classList.add('celeste');
       btn.subs.classList.toggle('act', S.hay());
       btn.cc.classList.toggle('act', i.textoPista >= 0);
@@ -183,7 +187,8 @@
     /* ---------- barra de tiempo ---------- */
     function pintarSeek(pos, dur) {
       tAct.textContent = Azure.formatoTiempo(pos);
-      if (R.esEnVivo()) { tSep.style.display = 'none'; tTot.textContent = 'EN VIVO'; prog.style.width = '100%'; thumb.style.left = '100%'; return; }
+      vivoEl.style.display = R.esEnVivo() && R.info().estado !== 'detenido' ? '' : 'none';
+      if (R.esEnVivo()) { tSep.style.display = 'none'; tTot.textContent = ''; prog.style.width = '100%'; thumb.style.left = '100%'; return; }
       tSep.style.display = ''; tTot.textContent = Azure.formatoTiempo(dur);
       var p = Math.max(0, Math.min(100, pos * 100 / dur));
       prog.style.width = p + '%'; thumb.style.left = p + '%';
@@ -278,6 +283,7 @@
           Azure.BuddyHost.leer(v[0], v[1]).then(function (t) { var ext = detectarExt(t); cargado(S.cargar(t, ext, v[1] + '.' + ext)); })
             .catch(function (e) { Azure.Registro.error('Subtítulo Buddy', e); aviso(Azure.Red.mensaje(e), 4500); });
         }); } },
+        { t: 'DESDE USB', fn: function () { Azure.Explorador.abrir({ modo: 'sub', alSub: function (n, nombre) { aviso('Subtítulo cargado (' + n + ' líneas).', 2500); S.aplicar(cue); textos(); } }); } },
         { t: 'ALMACENADOS', fn: function () { menuAlmacenados(); } },
         { t: 'GUARDAR', fn: function () { try { aviso('Guardado en almacenados: ' + S.guardarActual(), 2500); } catch (e) { aviso(e.message, 4000); } } },
         { t: 'ESTILO', fn: function () { Pant.util.dialogoEstiloSubs(function () { S.aplicar(cue); }); } },

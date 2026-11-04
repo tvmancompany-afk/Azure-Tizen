@@ -23,7 +23,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await p.evaluate(g => { const t = document.querySelector('.plegable textarea.campo'); t.value = g; t.dispatchEvent(new Event('input', { bubbles: true })); }, grande);
   await sleep(500);
   ok('texto grande: cuadro de solo lectura con vista previa de 2000 caracteres', await p.evaluate(() => { const t = document.querySelector('.plegable textarea.campo'); return t.readOnly && t.value.length === 2000; }), '');
-  ok('aviso de texto largo', await p.evaluate(() => /Texto largo: vista previa/.test(document.querySelector('.plegable').textContent)), '');
+  ok('aviso de texto largo', await p.evaluate(() => /Texto largo: vista previa/.test([...document.querySelectorAll('.plegable')].find(x => x.querySelector('textarea')).textContent)), '');
   await clickBtn('LEER TEXTO'); await sleep(300);
   ok('LEER TEXTO lee el texto COMPLETO (3000 elementos, no 20 000 caracteres)', await p.evaluate(() => /Lista cargada \(3000 elementos\)/.test(document.getElementById('estado-principal').textContent)), await p.evaluate(() => document.getElementById('estado-principal').textContent));
   await p.reload(); await sleep(400); await abrirPegar();

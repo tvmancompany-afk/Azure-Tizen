@@ -140,11 +140,11 @@
 
   Pant.def.principal = function () {
     var campoUrl = Azure.Campo.texto('URL directa o lista M3U/TXT', A.get('last_url', ''), { placeholder: 'https://…' });
-    var panelFuente = el('div', { cls: 'panel' }, el('h2', { text: 'Fuente' }), campoUrl.el,
+    var estadoPrincipal = el('div', { cls: 'estado', attrs: { id: 'estado-principal' } });
+    var panelFuente = plegable('Fuente', [campoUrl.el,
       el('div', { cls: 'fila-h' },
         boton('ABRIR', function () { A.set('last_url', campoUrl.valor()); abrirEnlace(campoUrl.valor()); }, 'pri'),
-        boton('LIMPIAR', function () { campoUrl.poner(''); A.set('last_url', ''); estadoTxt('', ''); })),
-      el('div', { cls: 'estado', attrs: { id: 'estado-principal' } }));
+        boton('LIMPIAR', function () { campoUrl.poner(''); A.set('last_url', ''); estadoTxt('', ''); }))], false);
 
     /* Texto pegado (igual que Azure Android): hasta 20 000 caracteres se muestra completo, editable y se recuerda entre aperturas.
        Más grande NO se muestra entero ni se guarda (un cuadro gigante hacía caer la app): el cuadro enseña una vista previa de solo lectura
@@ -235,6 +235,31 @@
           estadoTxt('Cuenta guardada (Xstream ' + l.length + ').', 'ok');
         })], false);
 
+    /* Rentry: solo CARGAR (como Android: solo se toman las entradas (Título|URL)) */
+    var rLink = Azure.Campo.texto('Link de Rentry (rentry.co/xxxx o solo xxxx)', A.get('rentry_link', ''));
+    var rEstado = el('div', { cls: 'estado' });
+    function rMsg(t, c) { rEstado.textContent = t; rEstado.className = 'estado ' + (c || ''); }
+    var panelRentry = plegable('Rentry', [
+      el('div', { cls: 'estado', text: 'En Rentry, cada entrada va como (Título|URL), entre paréntesis. Solo se toma eso; el resto de la página (menú, avisos, etc.) se ignora.' }),
+      rLink.el,
+      el('div', { cls: 'fila-h' }, boton('CARGAR', function () {
+        var i = Azure.Rentry.id(rLink.valor());
+        if (!i) { rMsg('Completá el link.', 'error'); return; }
+        A.set('rentry_link', rLink.valor().trim()); rMsg('Cargando...', '');
+        Azure.Rentry.leer(i).then(function (r) {
+          var limpio = Azure.Rentry.extraerEntradas(r.texto);
+          if (!limpio) { rMsg('No se encontró ninguna entrada con el formato (Título|URL) en esa página.', 'error'); return; }
+          ponerTexto(limpio); textoPegado(limpio); rMsg('Cargado desde rentry.co/' + r.id + '.', 'ok');
+        }).catch(function (e) { Azure.Registro.error('Rentry', e); rMsg(Azure.Red.mensaje(e), 'error'); });
+      }, 'pri')), rEstado], false);
+
+    /* Explorador local: USB / disco conectado a la TV */
+    var panelExplorador = plegable('Explorador local', [
+      el('div', { cls: 'estado', text: 'Videos y subtítulos de un USB o disco conectado a la TV. Un video con un subtítulo del mismo nombre en la carpeta lo carga solo.' }),
+      el('div', { cls: 'fila-h' }, boton('ABRIR EXPLORADOR', function () {
+        Azure.Explorador.abrir({ modo: 'video', alVideo: function (lista, idx) { reproducirMini(lista, idx); } });
+      }, 'pri'))], false);
+
     /* Ventanita del reproductor (como Azure Android): arriba y fija; los paneles se desplazan debajo. */
     var mini = Pant.crearMini({
       alEstado: function (e, m) {
@@ -245,8 +270,8 @@
     });
     P.mini = mini;
     mini.rectCaja = function () { var r = mini.caja.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }; };
-    var scrollIzq = el('div', { cls: 'izq-scroll' }, panelFuente, panelTexto, panelBuddy, panelXtream);
-    var colIzq = el('div', { cls: 'col col-izq' }, mini.el, scrollIzq);
+    var scrollIzq = el('div', { cls: 'izq-scroll' }, panelFuente, panelTexto, panelBuddy, panelXtream, panelRentry, panelExplorador);
+    var colIzq = el('div', { cls: 'col col-izq' }, mini.el, estadoPrincipal, scrollIzq);
 
     var buscar = Azure.Campo.texto('Buscar', '', { placeholder: 'Buscar título en la lista cargada', alCambiar: function (v) { P.filtro = v; refrescarLista(false); } });
     P.lista = Azure.Lista.crear({
@@ -261,7 +286,8 @@
       boton('FIN', function () { P.lista.irAlFinal(); }, 'chico'));
     barraLista.lastChild.classList.add('fijo'); barraLista.children[1].classList.add('fijo'); barraLista.children[2].classList.add('fijo');
     barraLista.children[1].id = 'btn-atras-lista';
-    var colDer = el('div', { cls: 'col col-der' }, buscar.el, barraLista, P.lista.el,
+    var panelBuscar = plegable('Buscar', [buscar.el], false);
+    var colDer = el('div', { cls: 'col col-der' }, panelBuscar, barraLista, P.lista.el,
       el('div', { cls: 'estado', text: 'Mantén OK (o botón amarillo) sobre un elemento para más opciones.' }));
 
     /* "C": activa/apaga el cursor (anillo libre) como en Azure Android. La tecla azul hace lo mismo desde cualquier pantalla. */

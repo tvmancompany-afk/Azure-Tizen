@@ -12,3 +12,5 @@ test4.js (0.1.1: archivos T y proxy) necesita además, en otra terminal:
   - un servidor sin CORS en 127.0.0.1:8802 con un a.m3u (python3 -m http.server --bind 127.0.0.1 8802 en una carpeta con a.m3u),
   - php -S 127.0.0.1:8801 dentro de una copia de tu carpeta Buddy con guardarT.php, leerT.php y proxyT.php copiados.
   - para esa prueba, una copia "proxyTest.php" del proxy con la clave abc123 y la IP 127.0.0.1 permitida (el proxy real bloquea 127.x).
+test9.js (Rentry) y test10.js (0.1.8: pestañas, sublista, Xtream en Preferentes, botón de motor).
+test11.js (0.1.9: explorador local con tizen.filesystem simulado).

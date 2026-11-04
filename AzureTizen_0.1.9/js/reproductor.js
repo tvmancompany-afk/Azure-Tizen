@@ -114,7 +114,7 @@
 
   function abrirUrl(url, retomar) {
     cerrarMotor();
-    E.url = url; E.dur = 0; E.pos = retomar || 0; E.textoInc = ''; E.textoIncHasta = 0; E.textoPista = -1;
+    E.url = url; E.dur = 0; E.pos = retomar || 0; E.textoInc = ''; E.textoIncHasta = 0; E.textoPista = -1; E.nSub = 0;
     E.usaAv = motorAv();
     emitir('cargando');
     if (E.usaAv) abrirAv(url, retomar); else abrirHtml(url, retomar);
@@ -133,11 +133,15 @@
         onevent: function (tipo, datos) { Azure.Registro.info('AVPlay evento ' + tipo + ' ' + (datos || '')); },
         onerror: function (tipo) { fallo('AVPlay ' + tipo); },
         onstreamcompleted: function () { terminado(); },
-        onsubtitlechange: function (dur, texto) { E.textoInc = texto || ''; E.textoIncHasta = Date.now() + (Number(dur) || 3000); }, ondrmevent: function () {}
+        onsubtitlechange: function (dur, texto) { if (!E.nSub) Azure.Registro.info('AVPlay subtítulo incrustado recibido: ' + String(texto).slice(0, 60)); E.nSub = (E.nSub || 0) + 1; E.textoInc = texto || ''; E.textoIncHasta = Date.now() + (Number(dur) || 3000); }, ondrmevent: function () {}
       });
       aplicarPantalla();
       av.prepareAsync(function () {
         try { E.dur = av.getDuration(); } catch (e) { E.dur = 0; }
+        try {
+          var tr = av.getTotalTrackInfo() || [];
+          Azure.Registro.info('AVPlay pistas: ' + tr.map(function (p) { return p.type + '#' + p.index + ' ' + (p.extra_info || ''); }).join(' | '));
+        } catch (e) { Azure.Registro.aviso('AVPlay pistas: ' + (e && e.message)); }
         var seguir = function () { try { av.play(); } catch (e) { fallo('AVPlay play: ' + (e && e.message)); return; } E.intentos = 0; emitir('reproduciendo'); iniciarTimer(); if (E.vel !== 1) R.velocidad(E.vel); };
         if (retomar > 0 && E.dur > 0) { try { av.seekTo(retomar, seguir, seguir); } catch (e) { seguir(); } } else seguir();
       }, function (e) { fallo('AVPlay prepare: ' + (e && (e.message || e.name) || e)); });
@@ -186,6 +190,13 @@
     },
     siguiente: function () { R.ir(indiceSiguiente(1)); },
     anterior: function () { R.ir(E.aleatorio ? indiceSiguiente(1) : (E.idx - 1 + E.lista.length) % E.lista.length); },
+    /** Cambia entre AVPlay y HTML5 y reanuda el video actual (en directo, desde cero). Se recuerda para los siguientes videos. */
+    cambiarMotor: function () {
+      if (!avp()) return 'HTML5 (este equipo no tiene AVPlay)';
+      A.set('motor', motorAv() ? 'html5' : 'auto');
+      if (E.abierto && E.url) abrirUrl(E.url, R.esEnVivo() ? 0 : E.pos);
+      return motorAv() ? 'AVPlay' : 'HTML5';
+    },
     recargar: function () { var p = E.pos; if (E.url) abrirUrl(E.url, p); },
 
     alternarPausa: function () {

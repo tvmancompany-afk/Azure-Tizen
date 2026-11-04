@@ -2,6 +2,8 @@ const { chromium } = require('playwright');
 const R = []; const ok = (n, c, x) => { R.push((c ? 'OK   ' : 'FALLA') + ' ' + n + (c ? '' : '  -> ' + x)); };
 process.on('unhandledRejection', e => { console.log(R.join('\n')); console.log('CRASH:', String(e.message).split('\n')[0]); process.exit(1); });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const abrirPaneles = (p) => p.evaluate(() => document.querySelectorAll('.plegable:not(.abierto) > .cab').forEach(c => c.click()));
 (async () => {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
@@ -10,6 +12,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto('file:///home/claude/AzureTizen/index.html'); await sleep(400);
+  const FF = async (v) => { await abrirPaneles(p); await p.locator('input.campo').first().fill(v); };
+  const BF = async (v) => { await abrirPaneles(p); await p.locator('.col-der input.campo').fill(v); };
   const press = k => p.keyboard.press(k);
   const act = () => p.evaluate(() => { const a = document.activeElement; return a ? (a.__t ? a.__t.textContent : a.textContent) : 'ninguno'; });
   const clickBtn = t => p.evaluate(t => { const e = [...document.querySelectorAll('.btn')].filter(b => b.offsetParent !== null).find(b => b.textContent === t); if (!e) return false; e.click(); return true; }, t).then(v => { if (!v) ok('(botón "' + t + '" existe)', false, 'no encontrado'); return v; });
@@ -130,7 +134,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // F. A PREFERENTES desde la principal
   await p.evaluate(() => Azure.Pantallas.volver()); await sleep(200);
-  await p.locator('input.campo').first().fill('http://127.0.0.1:8765/lista.m3u'); await clickBtn('ABRIR');
+  await FF('http://127.0.0.1:8765/lista.m3u'); await clickBtn('ABRIR');
   await p.waitForFunction(() => /2501/.test(document.getElementById('info-elementos').textContent), null, { timeout: 8000 });
   await largo();
   const bm = await dialogoBtns(); ok('mantener OK en la lista: ABRIR COMO LISTA / A PREFERENTES', bm.includes('A PREFERENTES'), JSON.stringify(bm));

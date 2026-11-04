@@ -4,6 +4,40 @@ Fuente de verdad si se pierde el chat. Una entrada por versión. Mapa del porteo
 
 
 
+
+
+
+
+## 0.1.9 — Explorador local (USB / disco duro)
+- Archivo nuevo js/explorador.js: usa tizen.filesystem (listStorages → solo dispositivos EXTERNAL montados; resolve; listFiles; openStream/readBytes). Permiso nuevo en config.xml: http://tizen.org/privilege/filesystem.read.
+- Pantalla principal: panel plegable "Explorador local" → ABRIR EXPLORADOR (ventana a pantalla completa). Carpetas 📁, videos/audios ▶ y subtítulos 💬 (SRT, VTT, ASS, SSA). Tocar un video reproduce la lista de la carpeta desde ese video en la ventanita (pantalla completa con su botón) y carga solo el subtítulo del mismo nombre si existe; tocar un subtítulo lo carga. Atrás sube un nivel; ↻ recarga (por si se conecta el USB después); ← sube.
+- Subtítulos+ del reproductor: nuevo botón DESDE USB (solo carpetas y subtítulos).
+- Lectura de subtítulos locales: UTF-8 (con o sin BOM), UTF-16 y, si no es UTF-8 válido, Windows-1252 (tildes y ñ de archivos viejos).
+- Dirección del video: file.toURI() (si no existe, file://+fullPath).
+- NO probado en la TV: nombres reales de los almacenes (removable_sda1…), si AVPlay abre el file:// del USB, permisos y tiempos de lectura. Probado en PC con tizen.filesystem simulado (pruebas/test11.js).
+- FTP y recibir cast dentro de la app: inviables (una app web de Tizen no abre servidores ni sockets); la TV puede recibir cast con su propio receptor (Smart View, AirPlay 2, DLNA) sin los botones de Azure.
+
+## 0.1.8 — Incidencias de la prueba en la TV (Incidencias.txt)
+- Fuente y Buscar son pestañas desplegables, cerradas por defecto. El mensaje de estado de la fuente queda visible bajo la ventanita.
+- Preferentes: elegir el 3.er stream de una sublista cargaba el 1.º (se buscaba el elemento por referencia y se regeneraba en cada lectura). Corregido por posición. Además, como en Android, al elegir un video se cierra Preferentes (conserva dónde estabas) y suena en la ventanita de la pantalla principal; la pantalla completa se pide con su botón (ya no salta sola).
+- Preferentes acepta también enlaces `xtream://` (carpetas de una cuenta Xtream) como "video-lista" que se abre como lista, igual que Android (que solo valida http en los formularios manuales). Desde A PREFERENTES se guardan; en los formularios de video también se permite xtream://. Falta que el usuario enseñe un link de ejemplo si hay algún formato más.
+- Botón AV/H5 dentro del reproductor (grupo ›/»): cambia entre AVPlay y HTML5 y reanuda el video actual (en directo, desde cero); queda recordado como "motor" para los siguientes videos.
+- "EN VIVO" ahora va arriba a la izquierda como insignia dentro de los controles (se desvanece con ellos).
+- Formularios: se ocultan las líneas de estado vacías (podía ser el "cuadro inaccesible" de agregar sublista/video; por confirmar).
+- Subtítulos nativos (AVPlay): sin cambios de lógica; ahora el registro anota las pistas que ve AVPlay ("AVPlay pistas: …") y el primer subtítulo incrustado recibido, para diagnosticar en la TV.
+- Pendiente: AV1 en AVPlay pide recargas (¿mejorable?), subtítulos nativos por diagnosticar, prueba de subtítulos por link (archive.org), Rentry en la TV.
+
+## 0.1.7 — Rentry (solo cargar) y espacio de la pantalla principal
+- Panel "Rentry" (después de Xtream): link o id → CARGAR. Lee /api/raw/<id> y, si falla, la página pública; toma SOLO las entradas `(Título|URL)` y las carga como lista. Mensajes de Android ("No se encontró ninguna entrada con el formato (Título|URL) en esa página."). Archivo nuevo js/rentry.js. Sin guardar ni código de edición.
+- Columna izquierda de 760 a 640 px (ancho de la ventanita): la lista de la derecha gana 120 px.
+- No probado aquí: que Rentry deje leer desde la TV (CORS / anti-bot). Prueba nueva: pruebas/test9.js.
+- Pendiente anotado: botón para cambiar de reproductor (AVPlay / HTML5) dentro de una pestaña desplegable del reproductor; correcciones del informe de la prueba en TV.
+
+## Pendiente para la próxima ronda (anotado 2026-11-03)
+- Rentry (solo CARGAR, sin guardar ni código de edición), siguiendo RentrySupport.kt de Azure Android: leer /api/raw/<id> y, si falla, la página pública; extraer SOLO las entradas con el formato `(Título|URL)` entre paréntesis (regex `\(\s*([^|()]+?)\s*\|\s*(https?://[^()\s]+)\s*\)`), ignorando menú, avisos y metadatos; armar un M3U con ellas y cargarlo. Si no hay ninguna: "No se encontró ninguna entrada con el formato (Título|URL) en esa página." Riesgo: CORS/anti-bot de Rentry desde la TV (puede necesitar el proxy).
+- Búsqueda de subtítulos por título (idea, API tipo OpenSubtitles) y subtítulos/explorador local por USB.
+- Usar el espacio libre del lado izquierdo de la pantalla principal tras achicar la ventanita.
+
 ## 0.1.6 — Ajustes tras la primera prueba en la TV
 - Fondo (fondo_azur.jpg) girado 90° (queda horizontal, se estira menos en 16:9).
 - Ventanita de la pantalla principal más pequeña: 640×360 (antes 760×428).

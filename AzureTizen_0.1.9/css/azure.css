@@ -16,7 +16,7 @@ body.reproduciendo{background:transparent}
 .barra h1{font-size:44px;font-weight:700;letter-spacing:.5px;flex:1}
 .cuerpo{flex:1;display:flex;gap:32px;padding:28px 48px 36px;min-height:0}
 .col{display:flex;flex-direction:column;gap:18px;min-height:0}
-.col-izq{width:760px;overflow-y:auto}
+.col-izq{width:640px;overflow-y:auto}
 .col-der{flex:1}
 .panel{background:rgba(11,31,46,.9);border-radius:22px;padding:22px 26px;display:flex;flex-direction:column;gap:14px}
 .panel h2{font-size:26px;color:var(--azul-claro);text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
@@ -198,3 +198,7 @@ textarea.campo{min-height:150px;resize:none}
 
 .cuenta-fila{display:flex;gap:12px;align-items:center}
 .cuenta-fila .btn:first-child{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.rep-vivo{position:absolute;top:30px;left:48px;padding:6px 20px 6px 40px;border-radius:12px;background:rgba(0,0,0,.55);font-size:26px;font-weight:700;letter-spacing:1px}
+.rep-vivo:before{content:'';position:absolute;left:16px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#e53935}
+.estado:empty{display:none}

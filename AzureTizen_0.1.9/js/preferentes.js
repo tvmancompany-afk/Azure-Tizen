@@ -10,6 +10,9 @@
   function guardarEntradas(e) { return A.set('pref_entradas', e); }
   function guardarOrden(o) { return A.set('pref_orden', o); }
 
+  /** Link válido para un video guardado: http(s) o un enlace interno xtream:// (carpeta de una cuenta Xtream; se abre como lista). */
+  function linkValido(u) { return Azure.esLinkHttp(u) || (Azure.Xtream && Azure.Xtream.esEnlace(u)); }
+
   function mismoUrl(a, b) { return (a || '').trim() === (b || '').trim(); }
 
   function videoLimpio(v) {
@@ -19,7 +22,7 @@
   }
 
   var Pref = Azure.Pref = {
-    listas: listas, entradas: entradas,
+    listas: listas, entradas: entradas, linkValido: linkValido,
 
     /** Primera pantalla: listas y entradas en el orden guardado; lo no ordenado va al final. */
     ordenado: function () {
@@ -124,7 +127,7 @@
         if (subId) e.sublists.forEach(function (s) { if (s.id === subId) dest = s.videos; });
         var v = dest[indice]; if (!v) return;
         if (d.title != null) v.title = d.title.trim() || 'Video';
-        if (d.url != null && Azure.esLinkHttp(d.url)) v.url = d.url.trim();
+        if (d.url != null && linkValido(d.url)) v.url = d.url.trim();
         if (d.cover != null) v.cover = d.cover.trim();
         if (d.list != null) { if (d.list) v.list = true; else delete v.list; }
         hecho = true;
@@ -155,7 +158,7 @@
         if (subId) e.sublists.forEach(function (s) { if (s.id === subId) dest = s.videos; });
         nuevos.forEach(function (v) {
           var x = videoLimpio(v);
-          if (!Azure.esLinkHttp(x.url)) return;
+          if (!linkValido(x.url)) return;
           if (dest.some(function (d) { return mismoUrl(d.url, x.url); })) return;
           dest.push(x); agregados++;
         });

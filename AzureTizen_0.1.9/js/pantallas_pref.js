@@ -8,6 +8,8 @@
 
   var MSG_URL = 'Debe empezar con http:// o https://';
   function esHttp(t) { return /^https?:\/\//i.test((t || '').trim()); }
+  /** Video guardable: http(s) o enlace interno xtream://. */
+  function esLinkVideo(t) { return esHttp(t) || Azure.Xtream.esEnlace((t || '').trim()); }
   /** Minúsculas y sin acentos, para que "pelicula" encuentre "Película". */
   function norm(t) { return (t || '').toLowerCase().normalize ? (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') : (t || '').toLowerCase(); }
 
@@ -42,7 +44,7 @@
         titulo: titulo, cuerpo: cuerpo,
         botones: [{ t: 'CANCELAR' }, { t: textoOk || 'ACEPTAR', cls: 'pri', noCerrar: true, fn: function (cerrar) {
           var v = cs.map(function (c) { return c.valor(); }), e = null;
-          campos.forEach(function (c, i) { if (!e && c.url && v[i].trim() && !esHttp(v[i])) e = (c.et || 'Link') + ': ' + MSG_URL; });
+          campos.forEach(function (c, i) { if (!e && c.url && v[i].trim() && !(c.url === 'video' ? esLinkVideo(v[i]) : esHttp(v[i]))) e = (c.et || 'Link') + ': ' + MSG_URL; });
           if (!e && validar) e = validar(v);
           if (e) { err.textContent = e; return; }
           vals = v; cerrar();
@@ -161,7 +163,7 @@
   Pant.aPreferentes = function (it) {
     var video = Pref.videoDeElemento(it);
     var xt = Azure.Xtream.esEnlace(it.url);
-    if (!esHttp(video.url) && !xt) { Azure.toast('Este elemento no tiene un link guardable.'); return; }
+    if (!esLinkVideo(video.url)) { Azure.toast('Este elemento no tiene un link guardable.'); return; }
     if (it.isList || xt) {
       D.menu('A PREFERENTES: ' + it.title, [
         { t: 'GUARDAR COMO LISTA CON LINK', fn: function () {
@@ -172,7 +174,7 @@
             Azure.toast(x ? 'Lista guardada.' : 'Falta el título.');
           });
         } },
-        { t: 'GUARDAR EN UNA ENTRADA', fn: function () { if (esHttp(video.url)) elegirEntrada(it, video); else Azure.toast('Este enlace solo se guarda como lista con link.'); } }
+        { t: 'GUARDAR EN UNA ENTRADA', fn: function () { elegirEntrada(it, video); } }
       ]);
       return;
     }
@@ -240,8 +242,12 @@
       if (it.tipo === 'entrada') { NAV.entradaId = it.id; NAV.subId = null; nivelNuevo(); return; }
       if (it.tipo === 'sublista') { NAV.subId = it.id; nivelNuevo(); return; }
       if (it.list) { Pant.volver(); Pant.abrirEnlace(it.url, it.nombre); return; }
+      // Los elementos se regeneran en cada items(): se busca por su posición (indice) y no por referencia (antes siempre arrancaba en el 1.º).
       var vids = items().filter(function (x) { return x.tipo === 'video' && !x.list; });
-      Pant.reproducir(vids.map(function (v) { return { title: v.nombre, url: v.url, logo: v.cover }; }), Math.max(0, vids.indexOf(it)));
+      var pos = 0; vids.forEach(function (x, k) { if (x.indice === it.indice) pos = k; });
+      // Como Android: la pantalla se cierra (conserva dónde estabas) y suena en la ventanita de la pantalla principal; pantalla completa con su botón.
+      var lst = vids.map(function (v) { return { title: v.nombre, url: v.url, logo: v.cover }; });
+      Pant.volver(); Pant.reproducirMini(lst, pos);
     }
     function nivelNuevo() { S.filtro = ''; S.busca = false; buscar.poner(''); buscarCaja.style.display = 'none'; NAV.fila = 0; refrescar(false); }
 
@@ -305,9 +311,9 @@
           fin(v);
         });
       } else if (it.tipo === 'video') {
-        D.formulario('Editar video', [{ et: 'Título', valor: it.nombre }, { et: 'Link del video o stream', valor: it.url, url: true }, { et: 'Link de la portada (opcional)', valor: it.cover, url: true },
+        D.formulario('Editar video', [{ et: 'Título', valor: it.nombre }, { et: 'Link del video o stream', valor: it.url, url: 'video' }, { et: 'Link de la portada (opcional)', valor: it.cover, url: true },
           { casilla: 'Este link abre otra lista de links (no se reproduce)', valor: !!it.list }], 'GUARDAR', null,
-          function (v) { return esHttp(v[1]) ? null : 'Link del video o stream: ' + MSG_URL; }).then(function (v) {
+          function (v) { return esLinkVideo(v[1]) ? null : 'Link del video o stream: ' + MSG_URL; }).then(function (v) {
           if (v) Pref.editarVideo(NAV.entradaId, NAV.subId, it.indice, { title: v[0], url: v[1], cover: v[2], list: v[3] });
           fin(v);
         });
@@ -355,8 +361,8 @@
     }
     function agregarVideo() {
       D.formulario(NAV.subId ? 'Agregar video a la sublista' : 'Agregar video a la entrada',
-        [{ et: 'Título' }, { et: 'Link del video o stream', url: true }, { et: 'Link de la portada (opcional)', url: true }, { casilla: 'Este link abre otra lista de links (no se reproduce)', valor: false }], 'AGREGAR', null,
-        function (v) { return esHttp(v[1]) ? null : 'Link del video o stream: ' + MSG_URL; }).then(function (v) {
+        [{ et: 'Título' }, { et: 'Link del video o stream', url: 'video' }, { et: 'Link de la portada (opcional)', url: true }, { casilla: 'Este link abre otra lista de links (no se reproduce)', valor: false }], 'AGREGAR', null,
+        function (v) { return esLinkVideo(v[1]) ? null : 'Link del video o stream: ' + MSG_URL; }).then(function (v) {
         if (!v) return;
         var n = Pref.agregarVideos(NAV.entradaId, NAV.subId, [{ title: v[0], url: v[1], cover: v[2], list: v[3] }]);
         Azure.toast(n ? 'Agregado.' : 'Ese link ya estaba.');

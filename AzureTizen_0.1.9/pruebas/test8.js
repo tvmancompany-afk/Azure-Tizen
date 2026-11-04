@@ -2,9 +2,12 @@
 const { chromium } = require('playwright');
 const R = []; const ok = (n, c, x) => { R.push((c ? 'OK   ' : 'FALLA') + ' ' + n + (c ? '' : '  -> ' + x)); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const abrirPaneles = (p) => p.evaluate(() => document.querySelectorAll('.plegable:not(.abierto) > .cab').forEach(c => c.click()));
 (async () => {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const p = await (await b.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
+  const FF = async (v) => { await abrirPaneles(p); await p.locator('input.campo').first().fill(v); };
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file:///home/claude/AzureTizen/index.html'); await sleep(400);
   const key = async (k, n) => { for (let i = 0; i < (n || 1); i++) await p.keyboard.press(k); await sleep(60); };
@@ -17,7 +20,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const p1 = await pos();
   ok('flechas mueven el anillo 28 px por pulsación', p1.x - p0.x === 84 && p1.y - p0.y === 56, JSON.stringify([p0, p1]));
   // cargar lista con un clic del anillo en ABRIR
-  await p.locator('input.campo').first().fill('http://127.0.0.1:8765/lista.m3u');
+  await FF('http://127.0.0.1:8765/lista.m3u');
   const centro = sel => p.evaluate(s => { const e = [...document.querySelectorAll('.btn')].find(b => b.textContent === s); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, sel);
   const irA = async (c) => { await p.evaluate(c => { const a = document.querySelector('.cursor-anillo'); }, c); await p.evaluate(c => Azure.Cursor.pos && 0, c); };
   // mover el anillo con flechas hasta el botón ABRIR (acercamiento por pasos)

@@ -2,14 +2,17 @@
 const { chromium } = require('playwright');
 const R = []; const ok = (n, c, x) => { R.push((c ? 'OK   ' : 'FALLA') + ' ' + n + (c ? '' : '  -> ' + x)); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const abrirPaneles = (p) => p.evaluate(() => document.querySelectorAll('.plegable:not(.abierto) > .cab').forEach(c => c.click()));
 (async () => {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const p = await (await b.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
+  const FF = async (v) => { await abrirPaneles(p); await p.locator('input.campo').first().fill(v); };
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file:///home/claude/AzureTizen/index.html'); await sleep(400);
   const clickBtn = t => p.evaluate(t => { const e = [...document.querySelectorAll('.btn')].find(b => b.textContent === t); if (!e) throw new Error('sin botón ' + t); e.click(); }, t);
   const ic = n => p.evaluate(n => { const i = document.querySelector('.mini-rep [data-ic="' + n + '"]'); if (!i) throw new Error('sin icono ' + n); i.parentNode.click(); }, n);
-  await p.locator('input.campo').first().fill('http://127.0.0.1:8765/lista.m3u'); await clickBtn('ABRIR');
+  await FF('http://127.0.0.1:8765/lista.m3u'); await clickBtn('ABRIR');
   await p.waitForFunction(() => /2501/.test(document.getElementById('info-elementos').textContent), null, { timeout: 8000 });
   ok('sin video la ventanita es negra (no vivo)', await p.evaluate(() => !document.querySelector('.mini-caja').classList.contains('vivo')), '');
   await p.keyboard.press('Enter');
