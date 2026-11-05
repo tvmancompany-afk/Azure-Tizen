@@ -17,7 +17,7 @@
     redim: A.get('rep_redim', 0),
     f43: A.get('rep_43', false),
     rect: null,                            // null = pantalla completa; {x,y,w,h} = ventana de la pantalla principal
-    abierto: false, estado: 'detenido', pos: 0, dur: 0, intentos: 0, saltos: 0, usaAv: false,
+    abierto: false, estado: 'detenido', pos: 0, dur: 0, intentos: 0, saltos: 0, usaAv: false, gen: 0,
     vel: 1,                                // velocidad de reproducción (se conserva entre videos)
     textoInc: '', textoIncHasta: 0, textoPista: -1   // subtítulo incrustado (AVPlay)
   };
@@ -66,11 +66,33 @@
   function iniciarTimer() {
     clearInterval(timer);
     timer = setInterval(function () {
+      if (E.estado === 'cargando' && E.usaAv && E.abierto) {
+        // AVPlay a veces avisa "cargando" y nunca avisa que terminó, aunque el video siga corriendo (la pantalla quedaba en "Cargando…" y play/pausa no hacían nada)
+        try {
+          var st = avp().getState(), t0 = avp().getCurrentTime();
+          if (st === 'PLAYING' && E.vigPos !== undefined && t0 - E.vigPos >= 600) { E.vigPos = undefined; Azure.Registro.aviso('AVPlay no avisó fin de carga, pero el video avanza: se quita "Cargando…"'); emitir('reproduciendo'); }
+          else if (st === 'PLAYING') { if (E.vigPos === undefined || t0 < E.vigPos) E.vigPos = t0; }
+          else E.vigPos = undefined;
+        } catch (e) {}
+        return;
+      }
+      E.vigPos = undefined;
       if (E.estado !== 'reproduciendo' && E.estado !== 'pausa') return;
+      if (E.pendiente > 0 && Date.now() > (E.pendienteHasta || 0)) E.pendiente = 0;   // directo o duración que nunca llega: se abandona
       if (E.pendiente > 0) {                       // reanudar donde estaba: si la duración llegó tarde, se salta en cuanto se conoce
         if (!(E.dur > 0)) { try { E.dur = E.usaAv ? avp().getDuration() : (video && isFinite(video.duration) ? Math.floor(video.duration * 1000) : 0); } catch (e) {} }
-        if (E.dur > 0 && !R.esEnVivo()) { var pp = E.pendiente; E.pendiente = 0; try { if (E.usaAv) avp().seekTo(pp); else if (video) video.currentTime = pp / 1000; } catch (e) { Azure.Registro.aviso('reanudar: ' + (e && e.message)); } E.pos = pp; return; }
+        if (E.dur > 0 && !R.esEnVivo()) {
+          var pp = E.pendiente; E.pendiente = 0;
+          try {
+            if (E.usaAv) avp().seekTo(pp, function () {}, function (e) { Azure.Registro.aviso('reanudar (seek) falló: ' + (e && (e.message || e.name))); });
+            else if (video) video.currentTime = pp / 1000;
+            Azure.Registro.info('Reanudando en ' + Math.round(pp / 1000) + ' s');
+          } catch (e) { Azure.Registro.aviso('reanudar: ' + (e && e.message)); }
+          E.pos = pp; return;
+        }
       }
+      // En pausa la imagen debe quedarse quieta: AVPlay a veces reanuda solo al terminar de cargar
+      if (E.usaAv && E.estado === 'pausa') { try { if (avp().getState() === 'PLAYING') { avp().pause(); Azure.Registro.aviso('AVPlay se reanudó solo en pausa: se volvió a pausar'); } } catch (e) {} }
       E.pos = posicionActual();
       if (E.pos > 1000) E.ultPos = E.pos;          // última posición buena (AVPlay a veces informa 0 mientras recarga)
       if (E.pos > 3000) E.saltos = 0;
@@ -121,27 +143,35 @@
     cerrarMotor();
     E.url = url; E.dur = 0; E.pos = retomar || 0; E.ultPos = retomar || E.ultPos || 0; E.pendiente = retomar || 0; E.textoOff = false; E.textoInc = ''; E.textoIncHasta = 0; E.textoPista = -1; E.nSub = 0;
     E.usaAv = motorAv();
+    var g = ++E.gen;                    // cada apertura tiene su número: las respuestas tardías de una apertura anterior se ignoran
     emitir('cargando');
-    if (E.usaAv) abrirAv(url, retomar); else abrirHtml(url, retomar);
+    // AVPlay necesita un instante tras close() antes de un nuevo open() (si no, a veces se queda sin responder)
+    if (E.usaAv) setTimeout(function () { if (g === E.gen && E.abierto) abrirAv(url, retomar, g); }, 300);
+    else abrirHtml(url, retomar);
   }
 
-  function abrirAv(url, retomar) {
-    var av = avp();
+  function abrirAv(url, retomar, g) {
+    var av = avp(), preparado = false, tPrep = null;
+    var vivo = function () { return g === E.gen; };
     try {
       av.open(url);
       var ua = A.get('rep_ua', '');
       if (ua) { try { av.setStreamingProperty('USER_AGENT', ua); } catch (e) { Azure.Registro.aviso('USER_AGENT: ' + (e && e.message)); } }
       av.setListener({
-        onbufferingstart: function () { if (E.estado === 'reproduciendo' && Azure.Senal) Azure.Senal.corte(); emitir('cargando'); },
-        onbufferingcomplete: function () { if (E.estado === 'cargando') emitir('reproduciendo'); },
-        oncurrentplaytime: function (t) { if (E.pendiente > 0 && t < E.pendiente) return; E.pos = t; if (t > 1000) E.ultPos = t; },
+        onbufferingstart: function () { if (!vivo()) return; if (E.estado === 'reproduciendo' && Azure.Senal) Azure.Senal.corte(); emitir('cargando'); },
+        onbufferingcomplete: function () { if (!vivo()) return; if (E.estado === 'cargando') emitir('reproduciendo'); else if (E.estado === 'pausa') { try { if (av.getState() === 'PLAYING') av.pause(); } catch (e) {} } },
+        oncurrentplaytime: function (t) { if (!vivo()) return; if (E.pendiente > 0 && t < E.pendiente) return; E.pos = t; if (t > 1000) E.ultPos = t; },
         onevent: function (tipo, datos) { Azure.Registro.info('AVPlay evento ' + tipo + ' ' + (datos || '')); },
-        onerror: function (tipo) { fallo('AVPlay ' + tipo); },
-        onstreamcompleted: function () { terminado(); },
+        onerror: function (tipo) { if (!vivo()) return; clearTimeout(tPrep); fallo('AVPlay ' + tipo); },
+        onstreamcompleted: function () { if (vivo()) terminado(); },
         onsubtitlechange: function (dur, texto) { if (!E.nSub) Azure.Registro.info('AVPlay subtítulo incrustado recibido: ' + String(texto).slice(0, 60)); E.nSub = (E.nSub || 0) + 1; E.textoInc = texto || ''; E.textoIncHasta = Date.now() + (Number(dur) || 3000); }, ondrmevent: function () {}
       });
       aplicarPantalla();
+      // Si AVPlay no responde al preparar (se queda en 00:00 sin "cargando" ni error), se trata como error para que recargue
+      tPrep = setTimeout(function () { if (vivo() && !preparado) fallo('AVPlay no respondió al preparar el video (25 s)'); }, 25000);
       av.prepareAsync(function () {
+        if (!vivo()) return;
+        preparado = true; clearTimeout(tPrep);
         try { E.dur = av.getDuration(); } catch (e) { E.dur = 0; }
         try {
           var tr = av.getTotalTrackInfo() || [];
@@ -149,9 +179,11 @@
         } catch (e) { Azure.Registro.aviso('AVPlay pistas: ' + (e && e.message)); }
         try { av.setSilentSubtitle(!A.get('sub_nativo', true)); } catch (e) { Azure.Registro.aviso('setSilentSubtitle: ' + (e && e.message)); }   // cada video arranca con el modo elegido (antes quedaba apagado para siempre)
         var seguir = function () { try { av.play(); } catch (e) { fallo('AVPlay play: ' + (e && e.message)); return; } E.intentos = 0; emitir('reproduciendo'); iniciarTimer(); if (E.vel !== 1) R.velocidad(E.vel); };
-        if (retomar > 0 && E.dur > 0 && E.dur < 86400000 * 2) { E.pendiente = 0; try { av.seekTo(retomar, seguir, seguir); } catch (e) { seguir(); } } else seguir();
-      }, function (e) { fallo('AVPlay prepare: ' + (e && (e.message || e.name) || e)); });
-    } catch (e) { fallo('AVPlay: ' + (e && (e.message || e.name) || e)); }
+        // Primero se reproduce y luego se salta a la posición (desde el temporizador): si el salto falla o no responde, el video igual arranca
+        E.pendiente = retomar > 0 ? retomar : 0; E.pendienteHasta = Date.now() + 20000;   // se decide en el temporizador cuando se conoce la duración (un directo no tiene)
+        seguir();
+      }, function (e) { if (!vivo()) return; preparado = true; clearTimeout(tPrep); fallo('AVPlay prepare: ' + (e && (e.message || e.name) || e)); });
+    } catch (e) { clearTimeout(tPrep); fallo('AVPlay: ' + (e && (e.message || e.name) || e)); }
   }
 
   function abrirHtml(url, retomar) {
@@ -189,7 +221,7 @@
     },
     ir: function (i) {
       if (!E.lista.length) return;
-      E.idx = (i + E.lista.length) % E.lista.length; E.intentos = 0;
+      E.idx = (i + E.lista.length) % E.lista.length; E.intentos = 0; E.vel = 1;
       var it = E.lista[E.idx];
       if (cb.alItem) cb.alItem(it, E.idx);
       abrirUrl(it.url, 0);
@@ -209,11 +241,12 @@
       try {
         if (E.usaAv) {
           var av = avp(), s = av.getState();
+          Azure.Registro.info('Pausa/play: AVPlay en ' + s + ', pantalla en ' + E.estado);
           if (s === 'PLAYING') { av.pause(); emitir('pausa'); } else if (s === 'PAUSED' || s === 'READY') { av.play(); emitir('reproduciendo'); }
         } else if (video) { if (video.paused) video.play(); else video.pause(); }
       } catch (e) { Azure.Registro.aviso('pausa: ' + (e && e.message)); }
     },
-    pausar: function () { if (E.estado === 'reproduciendo') R.alternarPausa(); },
+    pausar: function () { if (E.estado === 'reproduciendo' || E.estado === 'cargando') R.alternarPausa(); },
     reanudar: function () { if (E.estado === 'pausa') R.alternarPausa(); },
     esEnVivo: function () { return !(E.dur > 0) || E.dur > 86400000 * 2; },
 

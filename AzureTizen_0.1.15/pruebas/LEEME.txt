@@ -15,3 +15,4 @@ test4.js (0.1.1: archivos T y proxy) necesita además, en otra terminal:
 test9.js (Rentry) y test10.js (0.1.8: pestañas, sublista, Xtream en Preferentes, botón de motor).
 test11.js (0.1.9: explorador local con tizen.filesystem simulado).
 test12.js (0.1.10: reanudar al recargar y subtítulos incrustados con AVPlay simulado).
+test13.js (0.1.14: ↓ en lo más bajo oculta los controles en pantalla completa).

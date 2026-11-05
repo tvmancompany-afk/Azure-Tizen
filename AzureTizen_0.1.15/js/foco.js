@@ -72,6 +72,8 @@
       return l.length ? Foco.poner(l[0]) : false;
     },
     elegibles: elegibles,
+    /** ¿Hay algo enfocable en esa dirección desde el elemento actual? */
+    hayVecino: function (dir) { var cur = Foco.actual(); if (!cur) return false; return !!vecino(cur, dir, elegibles()); },
     mover: function (dir) {
       var cur = Foco.actual(), lista = elegibles();
       if (!cur || !lista.length || lista.indexOf(cur) < 0) { if (lista.length) Foco.poner(lista[0]); return; }

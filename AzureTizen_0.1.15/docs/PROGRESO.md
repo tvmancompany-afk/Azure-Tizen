@@ -10,6 +10,26 @@ Fuente de verdad si se pierde el chat. Una entrada por versión. Mapa del porteo
 
 
 
+
+
+
+## 0.1.14 — Ocultar controles con ↓ (movimiento por sectores)
+- Informe: los subtítulos incrustados ya funcionan (los dibuja la TV; con "Dibuja: AZURE" la TV no entrega el texto). El error de recarga volvió en una versión anterior a la 0.1.13 (fotos y registro pendientes).
+- Pantalla completa: con los controles visibles, ↓ estando en lo más bajo (sin nada enfocable debajo) los oculta; con los controles ocultos cualquier tecla los muestra. Nuevo Foco.hayVecino(dir). Prueba: pruebas/test13.js.
+
+## 0.1.13 — Estabilidad de AVPlay (informe: recargar deja el video en 00:00 y no responde; pausa que se reanuda sola y sin audio)
+- Causa más probable del cuelgue al recargar (introducida en 0.1.10): al recargar se hacía seekTo(posición) DENTRO de la preparación y el reproductor solo arrancaba cuando el seek avisaba que terminó; si AVPlay no respondía a ese seek (fuentes sin rango, firmware), el video quedaba en 00:00 con la duración puesta, sin "cargando" y sin error. Ahora se reproduce primero y el salto a la posición se hace después desde el temporizador (con callbacks y registro "Reanudando en N s"); si falla, el video igual sigue desde el principio.
+- Cada apertura lleva un número (E.gen): las respuestas tardías de una apertura anterior (prepare, errores, buffering, fin) se ignoran, para que una recarga no se mezcle con la sesión vieja.
+- Espera de 300 ms entre close() y el nuevo open() de AVPlay.
+- Si prepareAsync no responde en 25 s se trata como error (con "recarga automática" reintenta).
+- En pausa: si AVPlay se reanuda solo al terminar de cargar, se vuelve a pausar (y se anota en el registro).
+- Un video nuevo (no una recarga) vuelve a 1x: algunos firmware silencian el audio con velocidad distinta de 1 (sospecha para "se reproduce solo y sin audio"; sin confirmar).
+- Indicador de red: rtt 0 = sin dato (no se muestra "0 ms").
+- Pruebas: test12 amplía con AVPlay simulado (preparación sin respuesta, respuestas tardías). No probado en la TV.
+
+## 0.1.12 — Corrección del indicador de red
+- navigator.connection.rtt = 0 significa "aún sin medición", no latencia cero: ahora se oculta ("sin dato", arcos tenues) hasta que el navegador de la TV mida; con rtt 0 tampoco se usa la velocidad de bajada (valor por defecto 10 Mb/s).
+
 ## 0.1.11 — Indicador de red
 - Nuevo js/senal.js: símbolo Wi-Fi arriba a la izquierda del botón C (solo pantalla principal) con tipo de conexión (webapis.network: Wi-Fi / Cable / Sin red), latencia y velocidad estimadas (navigator.connection) y los cortes de video de los últimos 5 min (se pone naranja con 3 o más). Cada corte se anota en el registro con esos datos ("Corte de video #N | red | rtt | bajada").
 - Límite: una app web de Tizen no puede leer la intensidad real del Wi-Fi (RSSI); los arcos son una estimación del navegador de la TV con el tráfico reciente.
@@ -182,3 +202,7 @@ Se corrigieron dos fallos que salieron: el foco no seguía al cambiar de nivel e
 - (Subtítulos: decidido que se cargan por link o pegando texto; el estilo ya es configurable.)
 - Seguir comparando Azure Tizen con Azure Android parte por parte (hecho: Configuración). Decidir si la contraseña de Preferentes lleva ojo (Android 0.1.15 no; Tizen sí, alcanzable con el D-pad).
 - Porte a webOS (LG) después de Tizen.
+
+## 0.1.15
+- Reproductor: si AVPlay avisaba "cargando" y nunca avisaba el fin (el video seguía corriendo sin audio y la pantalla quedaba en "Cargando…", sin responder a play/pausa), ahora se detecta que el tiempo avanza y se quita el "Cargando…". Pausa también funciona desde "cargando". El registro anota "Pausa/play: AVPlay en X".
+- Sin audio no se puede corregir desde la app: usar recargar o el botón AV/H5.

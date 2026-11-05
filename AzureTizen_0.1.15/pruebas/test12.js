@@ -20,21 +20,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     } };
     Azure.Reproductor.abrir([{ title: 'v', url: 'http://x/v.mp4' }], 0);
   });
-  await sleep(600);
+  await sleep(1400);
   let l = await p.evaluate(() => window.__log.join('|'));
   ok('cada video arranca con los subtítulos nativos de la TV (silent false)', /silent false/.test(l), l);
   // reproducir hasta 125 s y recargar: debe retomar ahí
-  await p.evaluate(() => { __st.t = 125000; }); await sleep(600);
-  await p.evaluate(() => { __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(600);
+  await p.evaluate(() => { __st.t = 125000; }); await sleep(1400);
+  await p.evaluate(() => { __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(1400);
   l = await p.evaluate(() => window.__log.join('|'));
   ok('recargar retoma desde donde estaba (125 s)', /seek 125000/.test(l), l);
   // AVPlay informa 0 un instante antes de recargar: se usa la última posición buena
-  await p.evaluate(() => { __st.t = 0; Azure.Reproductor.info().pos = 0; __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(600);
+  await p.evaluate(() => { __st.t = 0; Azure.Reproductor.info().pos = 0; __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(1400);
   l = await p.evaluate(() => window.__log.join('|'));
   ok('si AVPlay informa 0, retoma la última posición buena', /seek 125000/.test(l), l);
   // duración tardía: salta en cuanto se conoce
-  await p.evaluate(() => { __st.durTarde = true; __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(500);
-  await p.evaluate(() => { __st.durTarde = false; }); await sleep(900);
+  await p.evaluate(() => { __st.durTarde = true; __log.length = 0; Azure.Reproductor.recargar(); }); await sleep(900);
+  await p.evaluate(() => { __st.durTarde = false; }); await sleep(1200);
   l = await p.evaluate(() => window.__log.join('|'));
   ok('si la duración llega tarde, salta cuando se conoce', /seek 125000/.test(l), l);
   // subtítulos incrustados
@@ -49,8 +49,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await p.evaluate(() => { __log.length = 0; Azure.Reproductor.elegirTexto(-1); });
   l = await p.evaluate(() => window.__log.join('|') + ' off=' + Azure.Reproductor.info().textoOff);
   ok('desactivar oculta (silent true)', /silent true/.test(l) && /off=true/.test(l), l);
-  await p.evaluate(() => { Azure.Almacen.set('sub_nativo', true); __log.length = 0; Azure.Reproductor.abrir([{ title: 'w', url: 'http://x/w.mp4' }], 0); }); await sleep(500);
+  await p.evaluate(() => { Azure.Almacen.set('sub_nativo', true); __log.length = 0; Azure.Reproductor.abrir([{ title: 'w', url: 'http://x/w.mp4' }], 0); }); await sleep(900);
   l = await p.evaluate(() => window.__log.join('|'));
   ok('el siguiente video vuelve a mostrar subtítulos (no queda apagado)', /silent false/.test(l), l);
+  // prepareAsync que nunca responde: no queda colgado, se trata como error y (con recarga automática) reintenta
+  await p.evaluate(() => { Azure.Almacen.set('rep_auto', 1); Azure.Reproductor.info().auto = 1; window.__nopre = true; window.webapis.avplay.prepareAsync = () => { window.__prep = (window.__prep || 0) + 1; }; window.__log.length = 0; });
+  const tt = await p.evaluate(() => { Azure.Reproductor.recargar(); return Date.now(); });
+  await sleep(29000);
+  const q = await p.evaluate(() => ({ prep: window.__prep, estado: Azure.Reproductor.info().estado, intentos: Azure.Reproductor.info().intentos }));
+  ok('si AVPlay no responde al preparar (25 s) se detecta y reintenta', q.prep >= 2 && q.intentos >= 1, JSON.stringify(q));
+  // respuestas tardías de una apertura anterior se ignoran
+  await p.evaluate(() => { Azure.Almacen.set('rep_auto', 0); Azure.Reproductor.info().auto = 0; let cbs = []; window.webapis.avplay.prepareAsync = ok => cbs.push(ok); window.__cbs = cbs; window.__log.length = 0; Azure.Reproductor.recargar(); }); await sleep(500);
+  await p.evaluate(() => { Azure.Reproductor.recargar(); }); await sleep(500);
+  const n2 = await p.evaluate(() => { __log.length = 0; const k = window.__cbs.length; for (let i = 0; i < k - 1; i++) window.__cbs[i](); return k + ':' + __log.join('|'); });
+  ok('la respuesta tardía de una apertura anterior no hace nada (no play)', !/play/.test(n2), n2);
   console.log(R.join('\n')); console.log('ERRORES DE PÁGINA:', errs.join() || 'ninguno'); await b.close();
 })();

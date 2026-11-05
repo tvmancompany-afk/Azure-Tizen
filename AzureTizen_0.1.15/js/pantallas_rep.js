@@ -370,6 +370,8 @@
           mostrarUi(true); return true; // arriba, abajo, OK: muestran los controles
         }
         if (t === 'atras') { mostrarUi(false); return true; }
+        // Movimiento por sectores: ↓ estando en lo más bajo de los controles los oculta (si no, nunca se ocultan)
+        if (t === 'abj' && Azure.Foco.actual() && !Azure.Foco.hayVecino('abj')) { mostrarUi(false); return true; }
         reiniciarOcultar();
         return false;
       }

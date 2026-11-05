@@ -19,7 +19,8 @@
   }
   function medidas() {
     var c = navigator.connection || navigator.webkitConnection;
-    return c ? { rtt: c.rtt, down: c.downlink, tipo: c.effectiveType || '' } : null;
+    // rtt 0 = el navegador aún no midió (no es "cero latencia"): se trata como sin dato
+    return c ? { rtt: c.rtt > 0 ? c.rtt : null, down: c.rtt > 0 ? c.downlink : null, tipo: c.effectiveType || '' } : null;
   }
   /** 0..3 arcos según latencia y velocidad estimadas. -1 = sin datos. */
   function nivel(m) {
