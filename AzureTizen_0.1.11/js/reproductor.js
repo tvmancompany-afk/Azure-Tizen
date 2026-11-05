@@ -67,7 +67,12 @@
     clearInterval(timer);
     timer = setInterval(function () {
       if (E.estado !== 'reproduciendo' && E.estado !== 'pausa') return;
+      if (E.pendiente > 0) {                       // reanudar donde estaba: si la duración llegó tarde, se salta en cuanto se conoce
+        if (!(E.dur > 0)) { try { E.dur = E.usaAv ? avp().getDuration() : (video && isFinite(video.duration) ? Math.floor(video.duration * 1000) : 0); } catch (e) {} }
+        if (E.dur > 0 && !R.esEnVivo()) { var pp = E.pendiente; E.pendiente = 0; try { if (E.usaAv) avp().seekTo(pp); else if (video) video.currentTime = pp / 1000; } catch (e) { Azure.Registro.aviso('reanudar: ' + (e && e.message)); } E.pos = pp; return; }
+      }
       E.pos = posicionActual();
+      if (E.pos > 1000) E.ultPos = E.pos;          // última posición buena (AVPlay a veces informa 0 mientras recarga)
       if (E.pos > 3000) E.saltos = 0;
       if (cb.alTiempo) cb.alTiempo(E.pos, E.dur);
       if (cb.alSubtitulo) cb.alSubtitulo(Azure.Subtitulos.en(E.pos) || (E.textoInc && Date.now() < E.textoIncHasta ? E.textoInc : ''));
@@ -86,7 +91,7 @@
     if (E.auto === 1 && E.intentos < 5) {
       E.intentos++;
       emitir('cargando', 'Reintentando (' + E.intentos + ' de 5)…');
-      var pos = E.pos;
+      var pos = E.pos > 1000 ? E.pos : (E.ultPos || 0);
       setTimeout(function () { if (E.abierto) abrirUrl(E.url, pos); }, 1500);
       return;
     }
@@ -114,7 +119,7 @@
 
   function abrirUrl(url, retomar) {
     cerrarMotor();
-    E.url = url; E.dur = 0; E.pos = retomar || 0; E.textoInc = ''; E.textoIncHasta = 0; E.textoPista = -1; E.nSub = 0;
+    E.url = url; E.dur = 0; E.pos = retomar || 0; E.ultPos = retomar || E.ultPos || 0; E.pendiente = retomar || 0; E.textoOff = false; E.textoInc = ''; E.textoIncHasta = 0; E.textoPista = -1; E.nSub = 0;
     E.usaAv = motorAv();
     emitir('cargando');
     if (E.usaAv) abrirAv(url, retomar); else abrirHtml(url, retomar);
@@ -127,9 +132,9 @@
       var ua = A.get('rep_ua', '');
       if (ua) { try { av.setStreamingProperty('USER_AGENT', ua); } catch (e) { Azure.Registro.aviso('USER_AGENT: ' + (e && e.message)); } }
       av.setListener({
-        onbufferingstart: function () { emitir('cargando'); },
+        onbufferingstart: function () { if (E.estado === 'reproduciendo' && Azure.Senal) Azure.Senal.corte(); emitir('cargando'); },
         onbufferingcomplete: function () { if (E.estado === 'cargando') emitir('reproduciendo'); },
-        oncurrentplaytime: function (t) { E.pos = t; },
+        oncurrentplaytime: function (t) { if (E.pendiente > 0 && t < E.pendiente) return; E.pos = t; if (t > 1000) E.ultPos = t; },
         onevent: function (tipo, datos) { Azure.Registro.info('AVPlay evento ' + tipo + ' ' + (datos || '')); },
         onerror: function (tipo) { fallo('AVPlay ' + tipo); },
         onstreamcompleted: function () { terminado(); },
@@ -142,8 +147,9 @@
           var tr = av.getTotalTrackInfo() || [];
           Azure.Registro.info('AVPlay pistas: ' + tr.map(function (p) { return p.type + '#' + p.index + ' ' + (p.extra_info || ''); }).join(' | '));
         } catch (e) { Azure.Registro.aviso('AVPlay pistas: ' + (e && e.message)); }
+        try { av.setSilentSubtitle(!A.get('sub_nativo', true)); } catch (e) { Azure.Registro.aviso('setSilentSubtitle: ' + (e && e.message)); }   // cada video arranca con el modo elegido (antes quedaba apagado para siempre)
         var seguir = function () { try { av.play(); } catch (e) { fallo('AVPlay play: ' + (e && e.message)); return; } E.intentos = 0; emitir('reproduciendo'); iniciarTimer(); if (E.vel !== 1) R.velocidad(E.vel); };
-        if (retomar > 0 && E.dur > 0) { try { av.seekTo(retomar, seguir, seguir); } catch (e) { seguir(); } } else seguir();
+        if (retomar > 0 && E.dur > 0 && E.dur < 86400000 * 2) { E.pendiente = 0; try { av.seekTo(retomar, seguir, seguir); } catch (e) { seguir(); } } else seguir();
       }, function (e) { fallo('AVPlay prepare: ' + (e && (e.message || e.name) || e)); });
     } catch (e) { fallo('AVPlay: ' + (e && (e.message || e.name) || e)); }
   }
@@ -154,13 +160,13 @@
     aplicarPantalla();
     video.onplaying = function () { E.intentos = 0; emitir('reproduciendo'); };
     video.onpause = function () { if (E.estado === 'reproduciendo') emitir('pausa'); };
-    video.onwaiting = function () { emitir('cargando'); };
+    video.onwaiting = function () { if (E.estado === 'reproduciendo' && Azure.Senal) Azure.Senal.corte(); emitir('cargando'); };
     video.onended = function () { terminado(); };
     video.onerror = function () { fallo('<video> error ' + (video.error ? video.error.code : '?')); };
     video.onloadedmetadata = function () {
       try { video.playbackRate = E.vel; } catch (e) {}
       E.dur = isFinite(video.duration) ? Math.floor(video.duration * 1000) : 0;
-      if (retomar > 0 && E.dur > 0) try { video.currentTime = retomar / 1000; } catch (e) {}
+      if (retomar > 0 && E.dur > 0) { try { video.currentTime = retomar / 1000; E.pendiente = 0; } catch (e) {} }
     };
     video.src = url;
     var p = video.play();
@@ -194,10 +200,10 @@
     cambiarMotor: function () {
       if (!avp()) return 'HTML5 (este equipo no tiene AVPlay)';
       A.set('motor', motorAv() ? 'html5' : 'auto');
-      if (E.abierto && E.url) abrirUrl(E.url, R.esEnVivo() ? 0 : E.pos);
+      if (E.abierto && E.url) abrirUrl(E.url, R.esEnVivo() ? 0 : (E.pos > 1000 ? E.pos : (E.ultPos || 0)));
       return motorAv() ? 'AVPlay' : 'HTML5';
     },
-    recargar: function () { var p = E.pos; if (E.url) abrirUrl(E.url, p); },
+    recargar: function () { var p = E.pos > 1000 ? E.pos : (E.ultPos || 0); if (E.url && !R.esEnVivo()) abrirUrl(E.url, p); else if (E.url) abrirUrl(E.url, 0); },
 
     alternarPausa: function () {
       try {
@@ -247,17 +253,30 @@
     pistasTexto: function () {
       if (!E.usaAv) return [];
       try {
+        var cur = -1;
+        try { (avp().getCurrentStreamInfo() || []).forEach(function (p) { if (p.type === 'TEXT') cur = p.index; }); } catch (e) {}
+        var act = E.textoOff ? -1 : (E.textoPista >= 0 ? E.textoPista : cur);
         return avp().getTotalTrackInfo().filter(function (p) { return p.type === 'TEXT'; }).map(function (p) {
           var info = {}; try { info = JSON.parse(p.extra_info) || {}; } catch (e) {}
-          return { indice: p.index, idioma: info.track_lang || info.language || '', actual: p.index === E.textoPista };
+          return { indice: p.index, idioma: info.track_lang || info.language || '', actual: p.index === act };
         });
       } catch (e) { return []; }
     },
+    /** Modo de los subtítulos incrustados: true = los dibuja la TV (por defecto), false = los dibuja Azure con su estilo (si el firmware los entrega). */
+    subNativo: function () { return A.get('sub_nativo', true); },
+    alternarSubNativo: function () {
+      var v = !A.get('sub_nativo', true); A.set('sub_nativo', v);
+      try { if (E.usaAv && !E.textoOff) avp().setSilentSubtitle(!v); } catch (e) { Azure.Registro.aviso('setSilentSubtitle: ' + (e && e.message)); }
+      return v;
+    },
     elegirTexto: function (indice) {
       try {
-        if (indice < 0) { E.textoPista = -1; E.textoInc = ''; return true; }
-        try { avp().setSilentSubtitle(true); } catch (e) { Azure.Registro.aviso('setSilentSubtitle: ' + (e && e.message)); }
-        avp().setSelectTrack('TEXT', indice); E.textoPista = indice; return true;
+        if (indice < 0) { E.textoOff = true; E.textoPista = -1; E.textoInc = ''; try { avp().setSilentSubtitle(true); } catch (e) {} return true; }
+        E.textoOff = false;
+        try { avp().setSilentSubtitle(!A.get('sub_nativo', true)); } catch (e) { Azure.Registro.aviso('setSilentSubtitle: ' + (e && e.message)); }
+        avp().setSelectTrack('TEXT', indice); E.textoPista = indice;
+        Azure.Registro.info('Subtítulo incrustado: pista ' + indice + ' (' + (A.get('sub_nativo', true) ? 'nativo del TV' : 'estilo Azure') + ')');
+        return true;
       } catch (e) { Azure.Registro.aviso('subtítulo incrustado: ' + (e && e.message)); return false; }
     },
 

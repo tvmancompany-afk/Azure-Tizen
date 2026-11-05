@@ -242,8 +242,9 @@
     function menuTextoIncrustado() {
       var p = R.pistasTexto();
       if (!p.length) { cartel('Este video no trae subtítulos incrustados (o el reproductor no los expone).', 3500); return; }
-      var l = [{ t: 'Desactivados', check: R.info().textoPista < 0, fn: function () { R.elegirTexto(-1); textos(); } }];
+      var l = [{ t: 'Desactivados', check: !!R.info().textoOff, fn: function () { R.elegirTexto(-1); textos(); } }];
       p.forEach(function (x, i) { l.push({ t: nombreIdioma(x.idioma) || ('Subtítulo ' + (i + 1)), check: x.actual, fn: function () { R.elegirTexto(x.indice); textos(); } }); });
+      l.push({ t: 'Dibuja: ' + (R.subNativo() ? 'LA TV (nativo)' : 'AZURE (con tu estilo)'), fn: function () { var v = R.alternarSubNativo(); cartel('Subtítulos incrustados: ' + (v ? 'los dibuja la TV.' : 'los dibuja Azure (si la TV los entrega).'), 3000); } });
       panelFilas(l, 'velo-flot');
     }
 

@@ -296,7 +296,7 @@
     Pant.alCursor = function (v) { btnCursor.classList.toggle('cur-on', v); };
     var fondo = el('div', { cls: 'fondo' });
     var pantalla = el('div', { cls: 'pantalla principal' }, fondo,
-      barra('Azure', [btnCursor, boton('LISTAS', function () { Pant.ir('preferentes', {}, true); }), boton('CONFIGURACIÓN', function () { Pant.ir('config', {}, true); })]),
+      barra('Azure', [Azure.Senal.crear(), btnCursor, boton('LISTAS', function () { Pant.ir('preferentes', {}, true); }), boton('CONFIGURACIÓN', function () { Pant.ir('config', {}, true); })]),
       el('div', { cls: 'cuerpo' }, colIzq, colDer));
 
     return {

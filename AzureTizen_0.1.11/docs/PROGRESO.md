@@ -8,6 +8,19 @@ Fuente de verdad si se pierde el chat. Una entrada por versión. Mapa del porteo
 
 
 
+
+
+## 0.1.11 — Indicador de red
+- Nuevo js/senal.js: símbolo Wi-Fi arriba a la izquierda del botón C (solo pantalla principal) con tipo de conexión (webapis.network: Wi-Fi / Cable / Sin red), latencia y velocidad estimadas (navigator.connection) y los cortes de video de los últimos 5 min (se pone naranja con 3 o más). Cada corte se anota en el registro con esos datos ("Corte de video #N | red | rtt | bajada").
+- Límite: una app web de Tizen no puede leer la intensidad real del Wi-Fi (RSSI); los arcos son una estimación del navegador de la TV con el tráfico reciente.
+- Lectura del registro enviado (video JoJo, versión 0.1.9, TV UN75DU8000GXPE, Tizen 8.0 / Chromium 108): AVPlay lista AUDIO#1 Latino, #2 jap, #3 eng, VIDEO#0 640x480 h264 y TEXT#4,#5,#6 (text/plain, track_lang vacío, subtitle_type -1). Los índices de pista son los del campo index (4, 5, 6), que es lo que usa setSelectTrack; los nombres de los subtítulos salen como "Subtítulo 1/2/3" porque no traen idioma.
+
+## 0.1.10 — Reanudar al recargar y subtítulos incrustados (informe de la TV del 2026-11-04)
+- Informe: Rentry funciona; subtítulos por link funcionan perfecto; recargar empezaba de 0; con videos con subtítulos incrustados (inglés, español, español España) arrancaban solos, el menú decía "desactivado" y al elegir una pista dejaron de verse y no volvieron en ningún video.
+- Reanudar: se guarda la última posición buena (E.ultPos) y se usa al recargar, al reintentar y al cambiar de motor aunque AVPlay informe 0; si la duración llega tarde la posición queda pendiente y se salta en cuanto se conoce. (Un directo sí empieza de cero.)
+- Subtítulos incrustados: causa probable = al elegir una pista se llamaba setSilentSubtitle(true) (la TV deja de dibujarlos) y ese estado quedaba para los videos siguientes, y el firmware no entregaba el texto a nuestro dibujo. Ahora cada video arranca con setSilentSubtitle(false) (los dibuja la TV, como cuando arrancaban solos); el menú CC marca la pista activa leída de AVPlay (ya no "desactivado" fijo) y tiene la fila "Dibuja: LA TV / AZURE" para volver al dibujo propio con tu estilo (sub_nativo). Los subtítulos por link siguen dibujándolos Azure.
+- No probado en la TV (solo con AVPlay simulado, pruebas/test12.js). Pendiente: fotos del registro ("AVPlay pistas…") y los cortes/recargas frecuentes (¿WiFi, ventanita, Control Samsung?).
+
 ## 0.1.9 — Explorador local (USB / disco duro)
 - Archivo nuevo js/explorador.js: usa tizen.filesystem (listStorages → solo dispositivos EXTERNAL montados; resolve; listFiles; openStream/readBytes). Permiso nuevo en config.xml: http://tizen.org/privilege/filesystem.read.
 - Pantalla principal: panel plegable "Explorador local" → ABRIR EXPLORADOR (ventana a pantalla completa). Carpetas 📁, videos/audios ▶ y subtítulos 💬 (SRT, VTT, ASS, SSA). Tocar un video reproduce la lista de la carpeta desde ese video en la ventanita (pantalla completa con su botón) y carga solo el subtítulo del mismo nombre si existe; tocar un subtítulo lo carga. Atrás sube un nivel; ↻ recarga (por si se conecta el USB después); ← sube.

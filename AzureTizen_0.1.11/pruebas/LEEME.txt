@@ -14,3 +14,4 @@ test4.js (0.1.1: archivos T y proxy) necesita además, en otra terminal:
   - para esa prueba, una copia "proxyTest.php" del proxy con la clave abc123 y la IP 127.0.0.1 permitida (el proxy real bloquea 127.x).
 test9.js (Rentry) y test10.js (0.1.8: pestañas, sublista, Xtream en Preferentes, botón de motor).
 test11.js (0.1.9: explorador local con tizen.filesystem simulado).
+test12.js (0.1.10: reanudar al recargar y subtítulos incrustados con AVPlay simulado).

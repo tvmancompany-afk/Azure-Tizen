@@ -202,3 +202,13 @@ textarea.campo{min-height:150px;resize:none}
 .rep-vivo{position:absolute;top:30px;left:48px;padding:6px 20px 6px 40px;border-radius:12px;background:rgba(0,0,0,.55);font-size:26px;font-weight:700;letter-spacing:1px}
 .rep-vivo:before{content:'';position:absolute;left:16px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#e53935}
 .estado:empty{display:none}
+
+/* Indicador de red (pantalla principal) */
+.senal{display:flex;align-items:center;gap:10px;color:#cfe6f5;font-size:20px;margin-right:6px;white-space:nowrap}
+.senal .ic{width:44px;height:44px}
+.senal .ic svg{width:44px;height:44px}
+.senal .a1,.senal .a2,.senal .a3{opacity:.2}
+.senal[data-n="-1"] .a1,.senal[data-n="-1"] .a2,.senal[data-n="-1"] .a3{opacity:.45}
+.senal[data-n="1"] .a1,.senal[data-n="2"] .a1,.senal[data-n="2"] .a2,.senal[data-n="3"] .a1,.senal[data-n="3"] .a2,.senal[data-n="3"] .a3{opacity:1}
+.senal[data-n="0"]{color:#ff8a80}
+.senal.mala{color:#ffb74d}
