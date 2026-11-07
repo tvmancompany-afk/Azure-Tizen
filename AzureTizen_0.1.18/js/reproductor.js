@@ -156,6 +156,9 @@
     try {
       av.open(url);
       var ua = A.get('rep_ua', '');
+      // EXPERIMENTO: AVPlay solo deja cambiar USER_AGENT y COOKIE. Se prueba colar cabeceras extra detrás del User-Agent (salto de línea). Puede que el firmware las ignore o rechace.
+      var cab = A.get('rep_cab', '');
+      if (cab) { var lin = cab.split('|').map(function (x) { return x.trim(); }).filter(function (x) { return /^[A-Za-z-]+\s*:\s*\S/.test(x); }); if (lin.length) { ua = (ua || navigator.userAgent) + '\r\n' + lin.join('\r\n'); Azure.Registro.info('Cabeceras extra (experimento): ' + lin.join(' | ')); } }
       if (ua) { try { av.setStreamingProperty('USER_AGENT', ua); } catch (e) { Azure.Registro.aviso('USER_AGENT: ' + (e && e.message)); } }
       av.setListener({
         onbufferingstart: function () { if (!vivo()) return; if (E.estado === 'reproduciendo' && Azure.Senal) Azure.Senal.corte(); emitir('cargando'); },

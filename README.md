@@ -1,21 +1,21 @@
 # Azure Tizen
 
-Aplicación web para televisores Samsung Tizen, desarrollada en HTML, CSS y JavaScript sin dependencias de npm. La versión actual es **0.1.17** y el proyecto está en [`AzureTizen_0.1.17/`](./AzureTizen_0.1.17/).
+Aplicación web para televisores Samsung Tizen, desarrollada en HTML, CSS y JavaScript sin dependencias de npm. La versión actual es **0.1.18** y el proyecto está en [`AzureTizen_0.1.18/`](./AzureTizen_0.1.18/).
 
 ## Empezar
 
 - Guía de instalación para la Samsung UN75DU8000G: [`TIZEN_GUIA_UN75DU8000G.txt`](./TIZEN_GUIA_UN75DU8000G.txt)
-- Instrucciones generales para instalar en una TV: [`docs/INSTALAR_EN_TIZEN.md`](./AzureTizen_0.1.17/docs/INSTALAR_EN_TIZEN.md)
-- Mapa del porteo y riesgos conocidos: [`docs/MAPA_PORTEO.md`](./AzureTizen_0.1.17/docs/MAPA_PORTEO.md)
-- Archivos PHP para el hosting: [`servidor/LEEME.txt`](./AzureTizen_0.1.17/servidor/LEEME.txt)
-- Pruebas manuales y automatizadas: [`pruebas/LEEME.txt`](./AzureTizen_0.1.17/pruebas/LEEME.txt)
+- Instrucciones generales para instalar en una TV: [`docs/INSTALAR_EN_TIZEN.md`](./AzureTizen_0.1.18/docs/INSTALAR_EN_TIZEN.md)
+- Mapa del porteo y riesgos conocidos: [`docs/MAPA_PORTEO.md`](./AzureTizen_0.1.18/docs/MAPA_PORTEO.md)
+- Archivos PHP para el hosting: [`servidor/LEEME.txt`](./AzureTizen_0.1.18/servidor/LEEME.txt)
+- Pruebas manuales y automatizadas: [`pruebas/LEEME.txt`](./AzureTizen_0.1.18/pruebas/LEEME.txt)
 
 ## Probar en un navegador de PC
 
 Desde la carpeta del proyecto:
 
 ```sh
-cd AzureTizen_0.1.17
+cd AzureTizen_0.1.18
 python3 -m http.server 8000
 ```
 

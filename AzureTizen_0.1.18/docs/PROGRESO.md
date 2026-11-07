@@ -214,3 +214,6 @@ Se corrigieron dos fallos que salieron: el foco no seguía al cambiar de nivel e
 - Configuración > Diagnóstico: botón PROBAR CAPACIDADES DE LA TV (WebCodecs, códecs en hardware/software, WebAssembly, SIMD, hilos, núcleos) → resultado en el registro.
 - Mientras hay un video abierto se anota cada minuto "Memoria: ..." en el registro (para ver si crece hasta "memoria llena").
 - Indicador de señal: ya no suma un oyente nuevo cada vez que se rehace la pantalla (fuga pequeña).
+
+## 0.1.18
+- Configuración > Reproductor: campo "Cabeceras extra (experimento, AVPlay)". AVPlay solo admite USER_AGENT y COOKIE (confirmado en la documentación de Samsung); se intenta colar Referer/Origin tras el User-Agent con salto de línea. Sin garantía: el firmware puede ignorarlas. El registro anota "Cabeceras extra (experimento)". No probado en la TV.

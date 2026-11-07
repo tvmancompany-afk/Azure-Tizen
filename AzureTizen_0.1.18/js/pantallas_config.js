@@ -40,7 +40,8 @@
     });
     bMotor.textContent = 'MOTOR: ' + (A.get('motor', 'auto') === 'auto' ? 'AUTOMÁTICO (AVPlay si existe)' : 'SOLO HTML5');
     var ua = Azure.Campo.texto('User-Agent para reproducir (opcional, AVPlay)', A.get('rep_ua', ''), { alCambiar: function (v) { A.set('rep_ua', v.trim()); } });
-    var rep = U.plegable('Reproductor', [el('div', { cls: 'estado', text: 'Motor en uso: ' + Azure.Reproductor.motor() }), bMotor, ua.el], false);
+    var cabx = Azure.Campo.texto('Cabeceras extra (experimento, AVPlay)', A.get('rep_cab', ''), { alCambiar: function (v) { A.set('rep_cab', v.trim()); } });
+    var rep = U.plegable('Reproductor', [el('div', { cls: 'estado', text: 'Motor en uso: ' + Azure.Reproductor.motor() }), bMotor, ua.el, cabx.el, el('div', { cls: 'estado', text: 'Cabeceras extra (EXPERIMENTO, solo AVPlay): se intentan colar tras el User-Agent. Formato: Referer: https://sitio/ | Origin: https://sitio' })], false);
 
     var bhHost = Azure.Campo.texto('Host del Buddy Host', Azure.BuddyHost.hostGuardado(), { alCambiar: function (v) { Azure.BuddyHost.guardarHost(v); } });
     var bhG = Azure.Campo.texto('Archivo para guardar (por defecto guardarT.php)', A.get('buddy_guardar', 'guardarT.php'), { alCambiar: function (v) { A.set('buddy_guardar', v.trim()); } });
