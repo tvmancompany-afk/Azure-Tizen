@@ -77,7 +77,7 @@
     }
     var diag = U.plegable('Diagnóstico', [
       el('div', { cls: 'estado', text: 'Registro de errores de esta app, para pasárselo a Claude. Almacenamiento usado: ' + Math.round(A.uso() / 1024) + ' KB.' }),
-      U.boton('VER REGISTRO', verRegistro), U.boton('PRUEBA DE RED Y REPRODUCCIÓN', function () { Pant.ir('prueba', {}, true); })], false);
+      U.boton('VER REGISTRO', verRegistro), U.boton('PROBAR CAPACIDADES DE LA TV', function () { Azure.Capacidades.probar(); Azure.toast('Listo: míralo en VER REGISTRO (espera unos segundos).'); }), U.boton('PRUEBA DE RED Y REPRODUCCIÓN', function () { Pant.ir('prueba', {}, true); })], false);
 
     /* Reloj: hora del equipo (horas y minutos), se actualiza justo al cambiar el minuto. */
     var reloj = el('div', { cls: 'reloj' }), relojTimer = null;

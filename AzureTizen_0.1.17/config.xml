@@ -2,7 +2,7 @@
 <!-- Azure para Samsung Tizen TV. No probado en una TV: si Tizen Studio protesta por algún
      campo, créale un proyecto TV "Basic" vacío y compara este archivo con el suyo. -->
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="http://azure.local/AzureTizen" version="0.1.15" viewmodes="maximized">
+        id="http://azure.local/AzureTizen" version="0.1.17" viewmodes="maximized">
     <!-- package: 10 letras/números. id de la app = package + "." + nombre -->
     <tizen:application id="AzureTzn01.Azure" package="AzureTzn01" required_version="6.0"/>
     <content src="index.html"/>

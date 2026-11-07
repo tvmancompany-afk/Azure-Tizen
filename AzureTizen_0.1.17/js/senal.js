@@ -55,7 +55,7 @@
       txt = el('div', { cls: 'senal-txt' });
       raiz.appendChild(txt);
       pintar(); clearInterval(timer); timer = setInterval(pintar, 5000);
-      var c = navigator.connection; if (c && c.addEventListener) c.addEventListener('change', pintar);
+      var c = navigator.connection; if (c && c.addEventListener && !Azure.Senal._esc) { Azure.Senal._esc = true; c.addEventListener('change', function () { try { pintar(); } catch (e) {} }); }   // una sola vez: antes se sumaba un oyente cada vez que se rehacía la pantalla
       return raiz;
     },
     /** El reproductor avisa cuando el video se queda cargando en plena reproducción. */

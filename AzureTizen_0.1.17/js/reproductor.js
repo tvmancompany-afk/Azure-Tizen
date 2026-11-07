@@ -235,7 +235,16 @@
       if (E.abierto && E.url) abrirUrl(E.url, R.esEnVivo() ? 0 : (E.pos > 1000 ? E.pos : (E.ultPos || 0)));
       return motorAv() ? 'AVPlay' : 'HTML5';
     },
-    recargar: function () { var p = E.pos > 1000 ? E.pos : (E.ultPos || 0); if (E.url && !R.esEnVivo()) abrirUrl(E.url, p); else if (E.url) abrirUrl(E.url, 0); },
+    recargar: function () {
+      // Igual que pulsar el título del video (R.ir): reinicia contadores y avisa al item; en directo empieza de cero, en video conserva la posición
+      if (!E.url) return;
+      var p = E.pos > 1000 ? E.pos : (E.ultPos || 0);
+      if (R.esEnVivo()) p = 0;
+      Azure.Registro.info('Recargar: ' + (p ? 'desde ' + Math.round(p / 1000) + ' s' : 'desde cero'));
+      E.intentos = 0; E.vel = 1;
+      if (E.lista[E.idx] && cb.alItem) cb.alItem(E.lista[E.idx], E.idx);
+      abrirUrl(E.url, p);
+    },
 
     alternarPausa: function () {
       try {

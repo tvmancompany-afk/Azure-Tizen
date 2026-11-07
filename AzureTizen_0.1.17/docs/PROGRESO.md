@@ -206,3 +206,11 @@ Se corrigieron dos fallos que salieron: el foco no seguía al cambiar de nivel e
 ## 0.1.15
 - Reproductor: si AVPlay avisaba "cargando" y nunca avisaba el fin (el video seguía corriendo sin audio y la pantalla quedaba en "Cargando…", sin responder a play/pausa), ahora se detecta que el tiempo avanza y se quita el "Cargando…". Pausa también funciona desde "cargando". El registro anota "Pausa/play: AVPlay en X".
 - Sin audio no se puede corregir desde la app: usar recargar o el botón AV/H5.
+
+## 0.1.16
+- Botón recargar ahora hace lo mismo que pulsar el título del video (reinicia contadores y avisa al item); en directo empieza de cero. El registro anota "Recargar: ...". No probado en la TV.
+
+## 0.1.17
+- Configuración > Diagnóstico: botón PROBAR CAPACIDADES DE LA TV (WebCodecs, códecs en hardware/software, WebAssembly, SIMD, hilos, núcleos) → resultado en el registro.
+- Mientras hay un video abierto se anota cada minuto "Memoria: ..." en el registro (para ver si crece hasta "memoria llena").
+- Indicador de señal: ya no suma un oyente nuevo cada vez que se rehace la pantalla (fuga pequeña).
