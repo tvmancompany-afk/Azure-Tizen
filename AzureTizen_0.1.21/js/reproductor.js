@@ -156,8 +156,8 @@
     try {
       av.open(url);
       var ua = A.get('rep_ua', '');
-      // EXPERIMENTO: AVPlay solo deja cambiar USER_AGENT y COOKIE. Se prueba colar cabeceras extra detrás del User-Agent (salto de línea). Puede que el firmware las ignore o rechace.
-      var cab = A.get('rep_cab', '');
+      // AVPlay solo deja cambiar USER_AGENT y COOKIE. Se prueba colar cabeceras extra detrás del User-Agent (salto de línea). Puede que el firmware las ignore o rechace.
+      var cab = (E.lista[E.idx] && E.lista[E.idx].cab) || '';   // las cabeceras viajan con el video (panel "Video con cabeceras"), no son un ajuste global
       if (cab) { var lin = cab.split('|').map(function (x) { return x.trim(); }).filter(function (x) { return /^[A-Za-z-]+\s*:\s*\S/.test(x); }); if (lin.length) { ua = (ua || navigator.userAgent) + '\r\n' + lin.join('\r\n'); Azure.Registro.info('Cabeceras extra (experimento): ' + lin.join(' | ')); } }
       if (ua) { try { av.setStreamingProperty('USER_AGENT', ua); } catch (e) { Azure.Registro.aviso('USER_AGENT: ' + (e && e.message)); } }
       av.setListener({
@@ -260,6 +260,15 @@
     },
     pausar: function () { if (E.estado === 'reproduciendo' || E.estado === 'cargando') R.alternarPausa(); },
     reanudar: function () { if (E.estado === 'pausa') R.alternarPausa(); },
+    /** Hasta qué segundo (ms) hay video descargado alrededor de la posición actual. Solo HTML5; con AVPlay devuelve 0. */
+    bufferHasta: function () {
+      try {
+        if (E.usaAv || !video || !video.buffered) return 0;
+        var t = video.currentTime, b = video.buffered;
+        for (var i = 0; i < b.length; i++) if (b.start(i) <= t + 0.5 && b.end(i) >= t) return Math.floor(b.end(i) * 1000);
+      } catch (e) {}
+      return 0;
+    },
     esEnVivo: function () { return !(E.dur > 0) || E.dur > 86400000 * 2; },
 
     /** Salta a una posición (ms). No hace nada en directos. */

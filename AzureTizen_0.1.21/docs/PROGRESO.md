@@ -217,3 +217,13 @@ Se corrigieron dos fallos que salieron: el foco no seguía al cambiar de nivel e
 
 ## 0.1.18
 - Configuración > Reproductor: campo "Cabeceras extra (experimento, AVPlay)". AVPlay solo admite USER_AGENT y COOKIE (confirmado en la documentación de Samsung); se intenta colar Referer/Origin tras el User-Agent con salto de línea. Sin garantía: el firmware puede ignorarlas. El registro anota "Cabeceras extra (experimento)". No probado en la TV.
+
+## 0.1.19
+- Pantalla principal: nuevo panel plegable "Video con cabeceras" debajo de Fuente: link del video (se usa como Referer) y Origin (vacío = dominio del link). ABRIR arma Referer | Origin | Accept | Accept-Language | Sec-Fetch-Dest/Mode/Site y las aplica solo a ese video (solo AVPlay); recargar y reintentos las conservan.
+- Se quita de Configuración el campo global de cabeceras extra (era el experimento de 0.1.18, que funcionó en la TV con links de player.zilla-networks.com).
+
+## 0.1.20
+- "Video con cabeceras": LIMPIAR LINK y LIMPIAR ORIGIN (cada campo su botón), ORIGINS (lista de Origins guardados; al elegir uno se pega en su cuadro, con papelera para borrarlos) y GUARDAR ORIGIN. Al pulsar ABRIR el Origin usado se guarda solo. Las cabeceras siguen aplicándose únicamente a lo abierto desde este panel.
+
+## 0.1.21
+- Barra de tiempo: tramo más claro con lo ya descargado (precarga), como en YouTube; también se ve en pausa. Solo en modo HTML5 (AVPlay no informa hasta dónde ha descargado). No probado en la TV.

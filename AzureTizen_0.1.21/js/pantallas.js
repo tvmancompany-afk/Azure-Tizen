@@ -146,6 +146,63 @@
         boton('ABRIR', function () { A.set('last_url', campoUrl.valor()); abrirEnlace(campoUrl.valor()); }, 'pri'),
         boton('LIMPIAR', function () { campoUrl.poner(''); A.set('last_url', ''); estadoTxt('', ''); }))], false);
 
+    /* Video con cabeceras: para servidores que solo responden si la petición parece venir de su propio sitio (ej. player.zilla-networks.com).
+       El Referer es el mismo link del video; el Origin se deduce del link si se deja vacío; el resto de cabeceras es fijo. Solo AVPlay las aplica. */
+    function origenDe(u) { var m = /^(https?:\/\/[^\/?#]+)/i.exec(u || ''); return m ? m[1] : ''; }
+    function origenesGuardados(foco) {
+      var l = A.get('cab_origenes', []);
+      var cuerpo = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } });
+      var api;
+      l.forEach(function (o, i) {
+        var b = boton(o, function () { api.cerrar(); cabOrigen.poner(o); estadoTxt('Origin puesto: ' + o, 'ok'); });
+        var x = el('div', { cls: 'btn ib', f: true, attrs: { tabindex: '-1', 'aria-label': 'Borrar' } }, Azure.Iconos.crear('papelera'));
+        x.addEventListener('click', function () {
+          api.cerrar();
+          Azure.Dialogo.confirmar('¿Borrar este Origin?', o, 'BORRAR').then(function (si) {
+            if (si) { var q = A.get('cab_origenes', []); q.splice(i, 1); A.set('cab_origenes', q); estadoTxt('Origin borrado.', 'ok'); }
+            if (A.get('cab_origenes', []).length) origenesGuardados();
+          });
+        });
+        cuerpo.appendChild(el('div', { cls: 'cuenta-fila' }, b, x));
+      });
+      api = Azure.Dialogo.abrir({ titulo: 'Origins guardados', cuerpo: cuerpo, botones: [{ t: 'CERRAR' }] });
+    }
+    function guardarOrigen(o) {
+      var l = A.get('cab_origenes', []);
+      if (!o || l.indexOf(o) >= 0) return false;
+      l.push(o); A.set('cab_origenes', l); return true;
+    }
+    var cabUrl = Azure.Campo.texto('Link del video (será el Referer)', A.get('cab_url', ''), { placeholder: 'https://…' });
+    var cabOrigen = Azure.Campo.texto('Origin (vacío = dominio del link)', A.get('cab_origin', ''), { placeholder: 'https://sitio.com' });
+    var panelCab = plegable('Video con cabeceras', [
+      cabUrl.el,
+      el('div', { cls: 'fila-h' }, boton('LIMPIAR LINK', function () { cabUrl.poner(''); A.set('cab_url', ''); })),
+      cabOrigen.el,
+      el('div', { cls: 'fila-h' },
+        boton('LIMPIAR ORIGIN', function () { cabOrigen.poner(''); A.set('cab_origin', ''); }),
+        boton('ORIGINS', function () {
+          if (!A.get('cab_origenes', []).length) { Azure.Dialogo.aviso('Origins guardados', 'No hay Origins guardados. Escribe uno (o abre un video) y pulsa GUARDAR ORIGIN.'); return; }
+          origenesGuardados();
+        }),
+        boton('GUARDAR ORIGIN', function () {
+          var o = (cabOrigen.valor().trim() || origenDe(cabUrl.valor().trim())).replace(/\/+$/, '');
+          if (!Azure.esLinkHttp(o)) { estadoTxt('Escribe un Origin que empiece por http:// o https://', 'error'); return; }
+          estadoTxt(guardarOrigen(o) ? 'Origin guardado: ' + o : 'Ese Origin ya estaba guardado.', 'ok');
+        })),
+      el('div', { cls: 'fila-h' },
+        boton('ABRIR', function () {
+          var u = cabUrl.valor().trim(), o = cabOrigen.valor().trim();
+          if (!Azure.esLinkHttp(u)) { estadoTxt('El link del video debe empezar por http:// o https://', 'error'); return; }
+          if (!o) o = origenDe(u);
+          if (!Azure.esLinkHttp(o)) { estadoTxt('El Origin debe empezar por http:// o https://', 'error'); return; }
+          o = o.replace(/\/+$/, '');
+          A.set('cab_url', u); A.set('cab_origin', cabOrigen.valor().trim());
+          guardarOrigen(o);                       // se recuerda solo para la próxima vez
+          var cab = ['Referer: ' + u, 'Origin: ' + o, 'Accept: */*', 'Accept-Language: es-ES', 'Sec-Fetch-Dest: empty', 'Sec-Fetch-Mode: cors', 'Sec-Fetch-Site: same-origin'].join(' | ');
+          estadoTxt('Video con cabeceras.', 'ok');
+          reproducirMini([{ title: u.split('/').pop() || 'Video', url: u, cab: cab }], 0);
+        }, 'pri'))], false);
+
     /* Texto pegado (igual que Azure Android): hasta 20 000 caracteres se muestra completo, editable y se recuerda entre aperturas.
        Más grande NO se muestra entero ni se guarda (un cuadro gigante hacía caer la app): el cuadro enseña una vista previa de solo lectura
        y el texto completo se conserva en memoria para LEER TEXTO y para GUARDAR del Buddy Host. */
@@ -270,7 +327,7 @@
     });
     P.mini = mini;
     mini.rectCaja = function () { var r = mini.caja.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }; };
-    var scrollIzq = el('div', { cls: 'izq-scroll' }, panelFuente, panelTexto, panelBuddy, panelXtream, panelRentry, panelExplorador);
+    var scrollIzq = el('div', { cls: 'izq-scroll' }, panelFuente, panelCab, panelTexto, panelBuddy, panelXtream, panelRentry, panelExplorador);
     var colIzq = el('div', { cls: 'col col-izq' }, mini.el, estadoPrincipal, scrollIzq);
 
     var buscar = Azure.Campo.texto('Buscar', '', { placeholder: 'Buscar título en la lista cargada', alCambiar: function (v) { P.filtro = v; refrescarLista(false); } });

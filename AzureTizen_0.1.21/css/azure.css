@@ -120,7 +120,8 @@ textarea.campo{min-height:150px;resize:none}
 .rep-centro .ib.play.foco,.rep-centro .ib.play:focus{background-color:#fff;border-color:#5BB5F0;box-shadow:0 0 0 4px rgba(255,255,255,.55)}
 .rep-seek{position:absolute;left:16px;right:16px;top:860px;height:56px;display:flex;align-items:center;border-radius:14px;border:3px solid transparent}
 .rep-pista{position:relative;flex:1;height:8px;background:rgba(255,255,255,.35);border-radius:4px;margin:0 14px}
-.rep-prog{height:100%;width:0;background:#fff;border-radius:4px}
+.rep-buf{position:absolute;left:0;top:0;height:100%;width:0;background:rgba(255,255,255,.65);border-radius:4px}
+.rep-prog{position:relative;height:100%;width:0;background:#fff;border-radius:4px}
 .rep-thumb{position:absolute;top:50%;left:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:#fff;transition:transform .12s}
 .rep-seek.foco,.rep-seek:focus{outline:none;background-color:rgba(255,255,255,.12);border-color:#fff}
 .rep-seek.foco .rep-thumb,.rep-seek:focus .rep-thumb{transform:scale(1.5)}

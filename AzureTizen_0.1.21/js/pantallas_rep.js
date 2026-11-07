@@ -84,8 +84,8 @@
     btn.sig = ib('siguiente', function () { R.siguiente(); }, 'g');
     var centro = el('div', { cls: 'rep-centro' }, btn.ant, btn.m5, btn.pausa, btn.p15, btn.sig);
 
-    var prog = el('div', { cls: 'rep-prog' }), thumb = el('div', { cls: 'rep-thumb' });
-    var seek = el('div', { cls: 'rep-seek', f: true, attrs: { tabindex: '-1' } }, el('div', { cls: 'rep-pista' }, prog, thumb));
+    var buf = el('div', { cls: 'rep-buf' }), prog = el('div', { cls: 'rep-prog' }), thumb = el('div', { cls: 'rep-thumb' });
+    var seek = el('div', { cls: 'rep-seek', f: true, attrs: { tabindex: '-1' } }, el('div', { cls: 'rep-pista' }, buf, prog, thumb));
     seek.addEventListener('click', function () { R.alternarPausa(); });
     seek.__nav = function (dir) {
       if (dir === 'izq') { moverSeek(-1); return true; }
@@ -188,10 +188,13 @@
     function pintarSeek(pos, dur) {
       tAct.textContent = Azure.formatoTiempo(pos);
       vivoEl.style.display = R.esEnVivo() && R.info().estado !== 'detenido' ? '' : 'none';
-      if (R.esEnVivo()) { tSep.style.display = 'none'; tTot.textContent = ''; prog.style.width = '100%'; thumb.style.left = '100%'; return; }
+      if (R.esEnVivo()) { tSep.style.display = 'none'; tTot.textContent = ''; prog.style.width = '100%'; thumb.style.left = '100%'; buf.style.width = '0'; return; }
       tSep.style.display = ''; tTot.textContent = Azure.formatoTiempo(dur);
       var p = Math.max(0, Math.min(100, pos * 100 / dur));
       prog.style.width = p + '%'; thumb.style.left = p + '%';
+      // Parte ya descargada (solo modo HTML5: AVPlay no informa hasta dónde tiene descargado)
+      var bh = R.bufferHasta ? R.bufferHasta() : 0;
+      buf.style.width = bh > 0 ? Math.max(p, Math.min(100, bh * 100 / dur)) + '%' : '0';
     }
     /** Izquierda/derecha sobre la barra: 10 s por pulsación (30 s si se mantiene); el salto real se hace al dejar de pulsar. */
     function moverSeek(sig) {
